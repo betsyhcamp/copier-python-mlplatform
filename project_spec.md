@@ -52,6 +52,7 @@ copier-python-base/
 
 All files under `template/` are rendered into the target project.
 
+`src/{{ package_name }}/__init__.py` should be an empty file.
 ---
 
 ## Copier Configuration (`copier.yml`)
@@ -67,10 +68,10 @@ The template MUST prompt for the following variables:
 
 ### Optional
 - `ci_provider` (string enum)
-  - Allowed values: `none`, `github`, `bitbucket`
+  - Allowed values: `none`, `github`
   - Default: `none`
 
-In the event that `ci_provider=github` is specified an additional item should be in the template `template/.github/workflows/ci.yml.jinja` . In the event that `ci_provider=bitbucket` is specified an additional item should be in the template `template/bitbucket-pipelines.yml.jinja`. In contrast, if `ci_provider=none` where the defualt value is present, do not add a CI .yml file.
+In the event that `ci_provider=github` is specified an additional item should be in the template `template/.github/workflows/ci.yml.jinja` . In contrast, if `ci_provider=none` where the defualt value is present, do not add a CI .yml file. Use Copier approach `_exclude` to ensure the Github Actions CI file is only created when `ci_provider=github`. 
 
 No other prompts are allowed.
 
@@ -88,6 +89,8 @@ No other prompts are allowed.
 The generated `pyproject.toml` MUST include:
 
 - `[project]` metadata
+  - The [project] table MUST include a static version = "0.1.0"
+  - Have requires-python = ">=3.11" based on the major.minor version of the default python version in this template. 
 - `dependencies = []` (empty by default)
 - `[dependency-groups.dev]` containing:
   - `ruff`
@@ -128,11 +131,15 @@ The pre-commit configuration MUST include:
 - `trailing-whitespace`
 - `detect-private-key`
 - `check-added-large-files` with `args: ["--maxkb=500"]`
+  
+Use pinned versions for ruff (rev: v0.4.4) and pinned version for pre-commit (rev: v4.5.0)
 ---
 
 ## Taskfile
 
 A `Taskfile.yml` MUST be generated and act as the **single source of truth** for automation.
+
+Use Taskfile version: '3'
 
 Required tasks:
 - `install` to run `uv sync`
@@ -160,12 +167,6 @@ If `ci_provider == "github"`:
 - Install `uv`
 - Run `task ci`
 
-### Bitbucket Pipelines
-If `ci_provider == "bitbucket"`:
-- Generate `bitbucket-pipelines.yml`
-- Install `uv`
-- Run `task ci`
-
 If `ci_provider == "none"`, no CI files are generated.
 
 ---
@@ -185,7 +186,11 @@ No badges or marketing language.
 Nothing else should be automatically generated in the `README.md` as part of the template
 
 ---
+## Copier Validation
+Add validation only to `package_name` . Do not validate other fields so trust user imput on other fields. Let the Regex for validating `package_name` be `^[a-z][a-z0-9_]*$`
 
+
+---
 ## Quality Bar
 
 The generated project MUST:
