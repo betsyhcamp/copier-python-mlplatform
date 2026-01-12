@@ -1,0 +1,7 @@
+{
+  "python.analysis.extraPaths": ["src"],
+  "terminal.integrated.env.osx": {
+    "PYTHONPATH": "${workspaceFolder}/src"
+  },
+  "editor.rulers": [88]
+}
