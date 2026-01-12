@@ -1,0 +1,34 @@
+_subdirectory: template
+
+_exclude:
+  - "{% if ci_provider != 'github' %}.github{% endif %}"
+
+project_name:
+  type: str
+  help: Project name
+
+package_name:
+  type: str
+  help: Package name (valid Python identifier)
+  validator: "{% if not package_name | regex_search('^[a-z][a-z0-9_]*$') %}Must be a valid Python identifier (lowercase, starts with letter){% endif %}"
+
+python_version:
+  type: str
+  default: "3.11.11"
+  help: Python version
+
+author_name:
+  type: str
+  help: Author name
+
+author_email:
+  type: str
+  help: Author email
+
+ci_provider:
+  type: str
+  default: none
+  choices:
+    - none
+    - github
+  help: CI provider

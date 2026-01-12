@@ -1,0 +1,25 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      # Attempts to load all yaml files to verify syntax; unsafe: only check syntax, do not load yaml
+      - id: check-yaml
+        args: ["--unsafe"]
+      # Attempts to load all TOML files to verify syntax.
+      - id: check-toml
+      # Makes sure files end in a newline and only a newline
+      - id: end-of-file-fixer
+      # Trims trailing whitespace. Allow a single space on the end of .md lines for hard line breaks.
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      # Detects the presence of private keys
+      - id: detect-private-key
+      # Fail if staged files are above a certain size.
+      - id: check-added-large-files
+        args: ["--maxkb=1000"]

@@ -1,0 +1,34 @@
+version: '3'
+
+tasks:
+  install:
+    desc: Install dependencies
+    cmds:
+      - uv sync
+
+  lint:
+    desc: Run ruff linter
+    cmds:
+      - uv run ruff check .
+
+  format:
+    desc: Run ruff formatter
+    cmds:
+      - uv run ruff format .
+
+  test:
+    desc: Run pytest
+    cmds:
+      - uv run pytest
+
+  ci:
+    desc: Run install, lint, and test
+    cmds:
+      - task: install
+      - task: lint
+      - task: test
+
+  all-precommit:
+    desc: Run all pre-commit hooks
+    cmds:
+      - uv run pre-commit run --all-files
