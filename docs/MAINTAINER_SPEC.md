@@ -11,7 +11,6 @@ It is intended to:
 
 This template is intentionally **boring, small, and opinionated**.
 
----
 
 ## Explicit Non-Goals
 
@@ -27,12 +26,11 @@ The following are **out of scope** for this template and MUST NOT be implemented
 
 Future templates will handle specialization.
 
----
 
 ## Template Root Structure
 
 The template repository MUST have the following structure:
-
+```text
 copier-python-base/
 ├── copier.yml
 ├── project_spec.md
@@ -48,12 +46,12 @@ copier-python-base/
 │ │ └── __init__.py
 │ └── tests/
 │ └── test_smoke.py
-
+```
 
 All files under `template/` are rendered into the target project.
 
 `src/{{ package_name }}/__init__.py` should be an empty file.
----
+
 
 ## Copier Configuration (`copier.yml`)
 
@@ -73,9 +71,9 @@ The template MUST prompt for the following variables:
 
 In the event that `ci_provider=github` is specified an additional item should be in the template `template/.github/workflows/ci.yml.jinja` . In contrast, if `ci_provider=none` where the defualt value is present, do not add a CI .yml file. Use Copier approach `_exclude` to ensure the Github Actions CI file is only created when `ci_provider=github`. 
 
-No other prompts are allowed.
+No other Copier user prompts are allowed.
 
----
+
 
 ## Python Tooling Requirements
 
@@ -113,7 +111,7 @@ The `.gitignore` should be default exlude the following:
 - Ignore files and directories including `*.pyc`, `__pycache__/`, `.venv/`, `dist/`, `*.egg-info/`
 - Environment file `.env`
 - VS Code settings file `.vscode/settings.json` although an example `.settings-example.json` should not be excluded.
----
+
 
 ## Code Quality Tooling
 
@@ -133,7 +131,7 @@ The pre-commit configuration MUST include:
 - `check-added-large-files` with `args: ["--maxkb=1000"]`
   
 Use pinned versions for ruff (rev: v0.4.4) and pinned version for pre-commit (rev: v4.5.0)
----
+
 
 ## Taskfile
 
@@ -151,7 +149,7 @@ Required tasks:
 
 CI providers MUST call `task ci` and MUST NOT duplicate logic.
 
----
+
 
 ## CI Provider Support
 
@@ -169,7 +167,7 @@ If `ci_provider == "github"`:
 
 If `ci_provider == "none"`, no CI files are generated.
 
----
+
 
 ## README
 
@@ -185,12 +183,13 @@ No badges or marketing language.
 
 Nothing else should be automatically generated in the `README.md` as part of the template
 
----
+
+
 ## Copier Validation
 Add validation only to `package_name` . Do not validate other fields so trust user imput on other fields. Let the Regex for validating `package_name` be `^[a-z][a-z0-9_]*$`
 
 
----
+
 ## Quality Bar
 
 The generated project MUST:
