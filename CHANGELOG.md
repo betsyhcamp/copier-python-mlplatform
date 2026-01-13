@@ -26,6 +26,7 @@ This changelog format is based on [Keep a Changelog](https://keepachangelog.com/
 ### Added
 - `LICENSE` file (MIT).
 - `CHANGELOG.md` to document template evolution.
+- More descriptive `README.md`
 - Maintainer documentation (`docs/MAINTAINER_SPEC.md`) describing scope, non-goals, and design decisions.
 
 > Note: This release contains **no changes to the generated project output**.  
