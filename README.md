@@ -1,4 +1,4 @@
-# copier-python-base
+# copier-python-mlplatform
 
 A minimal, production-grade Copier template for Python projects.
 
@@ -91,6 +91,7 @@ copier copy gh:betsyhcamp/copier-python-base my-project
 * Check the latest changes in `CHANGELOG.md`
 * Happy to have others contribute or fork. If contributing, certainly use [semantic git commit messages](https://gist.github.com/joshbuchea/6f47e86d2510bce28f8e7f42ae84c716). 
 * Feel free to open a Github issue wherever needed.
+* originally derived from [copier-python-base](https://github.com/betsyhcamp/copier-python-base) but diverged to become a more specialized template.
 
 
 Made with :heart: in Portland, OR.
