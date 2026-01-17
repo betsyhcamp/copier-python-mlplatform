@@ -7,7 +7,7 @@
 It supports three project types:
 - **base**: Minimal foundation for any Python project
 - **package**: Python libraries with documentation-first conventions
-- **kfp-pipeline**: Kubeflow Pipelines ML workflow projects
+- **pipeline-kfp**: Kubeflow Pipelines ML workflow projects
 
 This template is intentionally **opinionated, consistent, and maintainable**.
 
@@ -56,7 +56,8 @@ copier-python-mlplatform/
 │   │   └── {{ package_name }}/
 │   │       └── __init__.py
 │   ├── tests/
-│   │   └── test_smoke.py.jinja
+│   │   ├── test_smoke.py.jinja
+│   │   └── conftest.py
 │   │
 │   │   # package type only
 │   ├── {% if project_type == 'package' %}docs{% endif %}/
@@ -128,7 +129,8 @@ my-project/
 │   └── {{ package_name }}/
 │       └── __init__.py
 └── tests/
-    └── test_smoke.py
+    ├── test_smoke.py
+    └── conftest.py.py
 ```
 
 ### What's Included
@@ -182,7 +184,7 @@ my-project/
 
 ## Project Type: kfp-pipeline
 
-The pipeline-kfp type extends base with Kubeflow Pipelines ML workflow structure.
+The pipeline-kfp type extends package structure with Kubeflow Pipelines ML workflow structure.
 
 ### Additional Generated Structure
 
@@ -196,6 +198,10 @@ my-project/
 ├── notebooks/
 │   └── .gitkeep
 ├── Dockerfile
+├── docs/
+    ├── conf.py
+    ├── index.rst
+    └── overview.rst
 └── src/
     └── {{ package_name }}/
         ├── __init__.py
@@ -229,6 +235,7 @@ These should be in dependencies =[...]
 - `components/`: KFP component definitions
 - `core/`: Core logic as plain python functions (data generation, training, prediction, model registration)
 - `pipelines/`: Pipeline definitions
+- `docs/`: Holds Sphinx documentation
 
 ---
 
@@ -249,7 +256,7 @@ version = "0.1.0"
 description = ""
 authors = [{ name = "{{ author_name }}", email = "{{ author_email }}" }]
 readme = "README.md"
-requires-python = ">={{ py_mm }}"
+requires-python = ">={{ py_major_minor }}"
 dependencies = []
 
 [dependency-groups]
@@ -326,13 +333,14 @@ A `Taskfile.yml` MUST be generated using version: '3'.
 | `all-precommit` | `uv run pre-commit run --all-files` | Run all pre-commit hooks |
 
 ### Package Tasks (project_type == 'package')
-
+Has `base` Tasks plus those below:
 | Task | Command | Description |
 |------|---------|-------------|
 | `docs` | `uv run sphinx-build -b html docs docs/_build/html` | Build HTML documentation locally |
 | `docs-clean` | `rm -rf docs/_build` | Remove built documentation |
 
 ### KFP Pipeline Tasks (project_type == 'kfp-pipeline')
+Has `base` and `package` Tasks plus those below:
 
 | Task | Command | Description |
 |------|---------|-------------|
@@ -477,7 +485,7 @@ The "Project structure" section MUST show the correct tree for each project type
     └── test_smoke.py
 ```
 
-**pipeline-kfp:** (base + configs/, notebooks/, notes/, Dockerfile, expanded src/)
+**pipeline-kfp:** (package + configs/, notebooks/, notes/, Dockerfile, expanded src/)
 ```text
 .
 ├── configs
@@ -490,6 +498,10 @@ The "Project structure" section MUST show the correct tree for each project type
 │   └── project_design_doc.md
 ├── .pre-commit-config.yaml
 ├── .python-version
+├── docs
+│   ├── conf.py
+│   ├── index.rst
+│   └── overview.rst
 ├── pyproject.toml
 ├── README.md
 ├── src
@@ -549,7 +561,7 @@ task run-local
 
 - `configs/` — YAML configuration files
 - `notebooks/` — Jupyter notebooks for exploration
-- `notes/` — Project design documentation
+- `notes/` — Project design specification
 - `src/{{ package_name }}/components/` — KFP component definitions
 - `src/{{ package_name }}/core/` — Core business logic
 - `src/{{ package_name }}/pipelines/` — Pipeline definitions
