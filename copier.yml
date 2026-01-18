@@ -7,6 +7,9 @@ _exclude:
   - "{% if project_type != 'pipeline-kfp' %}notebooks{% endif %}"
   - "{% if project_type != 'pipeline-kfp' %}notes{% endif %}"
   - "{% if project_type != 'pipeline-kfp' %}Dockerfile.jinja{% endif %}"
+  - "{% if project_type != 'pipeline-kfp' %}queries{% endif %}"
+  - "{% if project_type != 'pipeline-kfp' %}.sqlfluff{% endif %}"
+  - "{% if project_type != 'pipeline-kfp' %}.sqlfluffignore{% endif %}"
 
 project_name:
   type: str

@@ -23,3 +23,11 @@ repos:
       # Fail if staged files are above a certain size.
       - id: check-added-large-files
         args: ["--maxkb=1000"]
+{% if project_type == 'pipeline-kfp' %}
+  # SQLFluff: Automatic formatting fixes only (no linting) to use rules in .sqlfluff config file
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.4.2
+    hooks:
+      - id: sqlfluff-fix
+        files: ^queries/
+{% endif %}

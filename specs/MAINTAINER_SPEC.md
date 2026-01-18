@@ -73,6 +73,11 @@ copier-python-mlplatform/
 │   ├── {% if project_type == 'pipeline-kfp' %}Dockerfile{% endif %}.jinja
 │   ├── {% if project_type == 'pipeline-kfp' %}notes{% endif %}/
 │   │   └── project_design_doc.md
+│   ├── {% if project_type == 'pipeline-kfp' %}queries{% endif %}/
+│   │   ├── .gitkeep
+│   │   └── example.sql
+│   ├── {% if project_type == 'pipeline-kfp' %}.sqlfluff{% endif %}
+│   ├── {% if project_type == 'pipeline-kfp' %}.sqlfluffignore{% endif %}
 │   │
 │   │   # pipeline-kfp type only (inside src/{{ package_name }}/)
 │   │   # src/{{ package_name }}/config.py.jinja
@@ -130,7 +135,7 @@ my-project/
 │       └── __init__.py
 └── tests/
     ├── test_smoke.py
-    └── conftest.py.py
+    └── conftest.py
 ```
 
 ### What's Included
@@ -197,7 +202,12 @@ my-project/
 │   └── project_design_doc.md
 ├── notebooks/
 │   └── .gitkeep
+├── queries/
+│   ├── .gitkeep
+│   └── example.sql
 ├── Dockerfile
+├── .sqlfluff
+├── .sqlfluffignore
 ├── docs/
     ├── conf.py
     ├── index.rst
@@ -223,19 +233,37 @@ These should be in dependencies =[...]
 - `pyarrow>=15.0.0`
 - `pyyaml>=6.0.3`
 
+### Additional Dev Dependencies
+- `sqlfluff`
+
 ### Additional Taskfile Commands
 
 - `compile`: Compile the pipeline to JSON
 - `run-local`: Run pipeline components locally for testing
+- `sql-fix`: Fix SQL formatting in queries/ via `uv run sqlfluff fix queries/`
 
 ### Directory Purposes
 
 - `configs/`: YAML configuration files
 - `notebooks/`: Jupyter notebooks for exploration and dataset IDs
+- `queries/`: SQL query files (formatted with SQLFluff for BigQuery)
 - `components/`: KFP component definitions
 - `core/`: Core logic as plain python functions (data generation, training, prediction, model registration)
 - `pipelines/`: Pipeline definitions
 - `docs/`: Holds Sphinx documentation
+
+### SQLFluff Configuration
+
+The `.sqlfluff` config uses:
+- Dialect: BigQuery
+- Templater: Jinja
+- Uppercase keywords, functions, literals, types
+- 4-space indentation
+- Trailing commas
+- Max line length: 145
+- Required AS for column and table aliases
+
+The `.sqlfluffignore` file is empty by default (add SQL fragment files to ignore as needed).
 
 ---
 
@@ -312,7 +340,10 @@ The pre-commit configuration MUST include:
 - `detect-private-key`
 - `check-added-large-files` with `args: ["--maxkb=1000"]`
 
-Use pinned versions: ruff v0.4.4, pre-commit-hooks v4.5.0
+For `pipeline-kfp` type only:
+- `sqlfluff-fix` (rev: 3.4.2) with `files: ^queries/`
+
+Use pinned versions: ruff v0.4.4, pre-commit-hooks v4.5.0, sqlfluff 3.4.2
 
 ---
 
@@ -339,13 +370,14 @@ Has `base` Tasks plus those below:
 | `docs` | `uv run sphinx-build -b html docs docs/_build/html` | Build HTML documentation locally |
 | `docs-clean` | `rm -rf docs/_build` | Remove built documentation |
 
-### KFP Pipeline Tasks (project_type == 'kfp-pipeline')
+### KFP Pipeline Tasks (project_type == 'pipeline-kfp')
 Has `base` and `package` Tasks plus those below:
 
 | Task | Command | Description |
 |------|---------|-------------|
 | `compile` | TBD | Compile pipeline to JSON |
 | `run-local` | TBD | Run pipeline components locally |
+| `sql-fix` | `uv run sqlfluff fix queries/` | Fix SQL formatting in queries/ |
 
 CI providers MUST call `task ci` and MUST NOT duplicate logic.
 
@@ -485,13 +517,15 @@ The "Project structure" section MUST show the correct tree for each project type
     └── test_smoke.py
 ```
 
-**pipeline-kfp:** (package + configs/, notebooks/, notes/, Dockerfile, expanded src/)
+**pipeline-kfp:** (package + configs/, notebooks/, notes/, queries/, Dockerfile, .sqlfluff, expanded src/)
 ```text
 .
 ├── configs
 │   └── config.yaml
 ├── Dockerfile
 ├── .gitignore
+├── .sqlfluff
+├── .sqlfluffignore
 ├── notebooks
 │   └── .gitkeep
 ├── notes
@@ -503,6 +537,8 @@ The "Project structure" section MUST show the correct tree for each project type
 │   ├── index.rst
 │   └── overview.rst
 ├── pyproject.toml
+├── queries
+│   └── example.sql
 ├── README.md
 ├── src
 │   └── {{ package_name }}
@@ -562,9 +598,19 @@ task run-local
 - `configs/` — YAML configuration files
 - `notebooks/` — Jupyter notebooks for exploration
 - `notes/` — Project design specification
+- `queries/` — SQL query files
 - `src/{{ package_name }}/components/` — KFP component definitions
 - `src/{{ package_name }}/core/` — Core business logic
 - `src/{{ package_name }}/pipelines/` — Pipeline definitions
+
+### SQL Formatting
+
+Fix SQL formatting in queries/:
+```bash
+task sql-fix
+```
+
+SQLFluff is configured via `.sqlfluff` for BigQuery dialect with auto-formatting on pre-commit.
 ```
 
 No badges or marketing language.

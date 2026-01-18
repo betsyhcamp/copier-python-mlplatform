@@ -58,4 +58,9 @@ tasks:
     desc: Run pipeline components locally
     cmds:
       - echo "Not implemented"
+
+  sql-fix:
+    desc: Fix SQL formatting in queries/
+    cmds:
+      - uv run sqlfluff fix queries/
 {% endif %}

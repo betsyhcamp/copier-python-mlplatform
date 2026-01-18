@@ -89,6 +89,8 @@ pre-commit install
 │   └── config.yaml
 ├── Dockerfile
 ├── .gitignore
+├── .sqlfluff
+├── .sqlfluffignore
 ├── .vscode
 │   └── settings.example.json
 {% if ci_provider == 'github' -%}
@@ -107,6 +109,8 @@ pre-commit install
 │   ├── index.rst
 │   └── overview.rst
 ├── pyproject.toml
+├── queries
+│   └── example.sql
 ├── README.md
 ├── src
 │   └── {{ package_name }}
@@ -175,9 +179,19 @@ task run-local
 - `configs/` — YAML configuration files
 - `notebooks/` — Jupyter notebooks for exploration
 - `notes/` — Project design specification
+- `queries/` — SQL query files
 - `src/{{ package_name }}/components/` — KFP component definitions
 - `src/{{ package_name }}/core/` — Core business logic
 - `src/{{ package_name }}/pipelines/` — Pipeline definitions
+
+### SQL Formatting
+
+Fix SQL formatting in queries/:
+```bash
+task sql-fix
+```
+
+SQLFluff is configured via `.sqlfluff` for BigQuery dialect with auto-formatting on pre-commit.
 {% endif %}
 ## Notes
 * Tool versions are intentionally pinned where appropriate for reproducibility.

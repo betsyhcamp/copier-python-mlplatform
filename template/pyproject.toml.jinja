@@ -33,6 +33,9 @@ dev = [
     "sphinx",
     "furo",
 {%- endif %}
+{%- if project_type == 'pipeline-kfp' %}
+    "sqlfluff",
+{%- endif %}
 ]
 
 [tool.hatch.build.targets.wheel]
