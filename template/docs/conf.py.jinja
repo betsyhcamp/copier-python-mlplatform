@@ -1,0 +1,15 @@
+"""Sphinx configuration."""
+
+project = "{{ project_name }}"
+author = "{{ author_name }}"
+
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+]
+
+# Napoleon settings for Google-style docstrings
+napoleon_google_docstring = True
+napoleon_numpy_docstring = False
+
+html_theme = "furo"
