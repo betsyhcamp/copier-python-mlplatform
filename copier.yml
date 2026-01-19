@@ -2,6 +2,14 @@ _subdirectory: template
 
 _exclude:
   - "{% if ci_provider != 'github' %}.github{% endif %}"
+  - "{% if project_type == 'base' %}docs{% endif %}"
+  - "{% if project_type != 'pipeline-kfp' %}configs{% endif %}"
+  - "{% if project_type != 'pipeline-kfp' %}notebooks{% endif %}"
+  - "{% if project_type != 'pipeline-kfp' %}notes{% endif %}"
+  - "{% if project_type != 'pipeline-kfp' %}Dockerfile.jinja{% endif %}"
+  - "{% if project_type != 'pipeline-kfp' %}queries{% endif %}"
+  - "{% if project_type != 'pipeline-kfp' %}.sqlfluff{% endif %}"
+  - "{% if project_type != 'pipeline-kfp' %}.sqlfluffignore{% endif %}"
 
 project_name:
   type: str
@@ -24,6 +32,15 @@ author_name:
 author_email:
   type: str
   help: Author email
+
+project_type:
+  type: str
+  default: base
+  choices:
+    - base
+    - package
+    - pipeline-kfp
+  help: Project type
 
 ci_provider:
   type: str

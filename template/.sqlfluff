@@ -1,0 +1,47 @@
+[sqlfluff]
+dialect = bigquery
+templater = jinja
+exclude_rules = L009
+max_line_length = 145
+
+# See .sqlfluffignore for SQL query fragment files for SQLFluff to ignore
+
+[sqlfluff:indentation]
+tab_space_size = 4
+indent_unit = space
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.functions]
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.literals]
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.identifiers]
+extended_capitalisation_policy = consistent
+
+[sqlfluff:rules:capitalisation.types]
+capitalisation_policy = upper
+
+[sqlfluff:rules:layout.select_targets]
+capitalisation_policy = upper
+
+[sqlfluff:rules:layout.commas]
+comma_style = trailing
+
+[sqlfluff:rules:layout.long_lines]
+max_line_length = 145
+
+[sqlfluff:rules:layout.spacing]
+force_enable = true
+
+[sqlfluff:rules:aliasing.column]
+require_as = always
+
+[sqlfluff:rules:aliasing.table]
+require_as = always
+
+[sqlfluff:rules:structure.column_order]
+force_enable = true

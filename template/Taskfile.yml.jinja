@@ -37,3 +37,30 @@ tasks:
     desc: Run all pre-commit hooks
     cmds:
       - uv run pre-commit run --all-files
+{% if project_type in ['package', 'pipeline-kfp'] %}
+  docs:
+    desc: Build HTML documentation locally
+    cmds:
+      - uv run sphinx-build -b html docs docs/_build/html
+
+  docs-clean:
+    desc: Remove built documentation
+    cmds:
+      - rm -rf docs/_build
+{% endif %}
+{% if project_type == 'pipeline-kfp' %}
+  compile:
+    desc: Compile pipeline to JSON
+    cmds:
+      - echo "Not implemented"
+
+  run-local:
+    desc: Run pipeline components locally
+    cmds:
+      - echo "Not implemented"
+
+  sql-fix:
+    desc: Fix SQL formatting in queries/
+    cmds:
+      - uv run sqlfluff fix queries/
+{% endif %}

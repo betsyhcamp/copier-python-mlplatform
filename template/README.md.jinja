@@ -2,7 +2,6 @@
 
 TODO — one sentence on what this project does.
 
-
 A minimal, production-grade Python project scaffold.
 
 This project was generated from a Copier template designed to standardize:
@@ -37,19 +36,19 @@ pre-commit install
 
 ## Project structure
 
-The template project structure which optionally includes a `.github/workflows/ci.yml` is as follows: 
-
 ```text
+{% if project_type == 'base' -%}
 .
-├── .github
-│   └── workflows
-│       └── ci.yml
 ├── .gitignore
 ├── .pre-commit-config.yaml
 ├── .python-version
 ├── .vscode
 │   └── settings.example.json
-├── uv.lock
+{% if ci_provider == 'github' -%}
+├── .github
+│   └── workflows
+│       └── ci.yml
+{% endif -%}
 ├── pyproject.toml
 ├── README.md
 ├── src
@@ -57,8 +56,78 @@ The template project structure which optionally includes a `.github/workflows/ci
 │       └── __init__.py
 ├── Taskfile.yml
 └── tests
-    ├── conftest.py
-    └── test_smoke.py
+    ├── test_smoke.py
+    └── conftest.py
+{% elif project_type == 'package' -%}
+.
+├── .gitignore
+├── .pre-commit-config.yaml
+├── .python-version
+├── .vscode
+│   └── settings.example.json
+{% if ci_provider == 'github' -%}
+├── .github
+│   └── workflows
+│       └── ci.yml
+{% endif -%}
+├── docs
+│   ├── conf.py
+│   ├── index.rst
+│   └── overview.rst
+├── pyproject.toml
+├── README.md
+├── src
+│   └── {{ package_name }}
+│       └── __init__.py
+├── Taskfile.yml
+└── tests
+    ├── test_smoke.py
+    └── conftest.py
+{% elif project_type == 'pipeline-kfp' -%}
+.
+├── configs
+│   └── config.yaml
+├── Dockerfile
+├── .gitignore
+├── .sqlfluff
+├── .sqlfluffignore
+├── .vscode
+│   └── settings.example.json
+{% if ci_provider == 'github' -%}
+├── .github
+│   └── workflows
+│       └── ci.yml
+{% endif -%}
+├── notebooks
+│   └── .gitkeep
+├── notes
+│   └── project_design_doc.md
+├── .pre-commit-config.yaml
+├── .python-version
+├── docs
+│   ├── conf.py
+│   ├── index.rst
+│   └── overview.rst
+├── pyproject.toml
+├── queries
+│   └── example.sql
+├── README.md
+├── src
+│   └── {{ package_name }}
+│       ├── __init__.py
+│       ├── config.py
+│       ├── run_pipeline.py
+│       ├── components
+│       │   └── __init__.py
+│       ├── core
+│       │   └── __init__.py
+│       └── pipelines
+│           └── __init__.py
+├── Taskfile.yml
+└── tests
+    ├── test_smoke.py
+    └── conftest.py
+{% endif -%}
 ```
 
 * `src/` layout is used for correct packaging behavior
@@ -71,13 +140,59 @@ Common tasks:
 ```bash
 task install       # Run uv sync
 task lint          # Run linters
-task lint-fix      # Run linters with automated fixes 
+task lint-fix      # Run linters with automated fixes
 task format        # Auto-format code
 task test          # Run tests
 task ci            # Run full CI suite
 task all-precommit # Run precommit hooks on all files
 ```
+{% if project_type in ['package', 'pipeline-kfp'] %}
+## Documentation
 
+Build documentation locally:
+```bash
+task docs
+```
+
+Then open `docs/_build/html/index.html` in your browser.
+
+To clean built documentation:
+```bash
+task docs-clean
+```
+{% endif %}
+{% if project_type == 'pipeline-kfp' %}
+## Pipeline Development
+
+Compile the pipeline:
+```bash
+task compile
+```
+
+Run pipeline components locally:
+```bash
+task run-local
+```
+
+### Directory Overview
+
+- `configs/` — YAML configuration files
+- `notebooks/` — Jupyter notebooks for exploration
+- `notes/` — Project design specification
+- `queries/` — SQL query files
+- `src/{{ package_name }}/components/` — KFP component definitions
+- `src/{{ package_name }}/core/` — Core business logic
+- `src/{{ package_name }}/pipelines/` — Pipeline definitions
+
+### SQL Formatting
+
+Fix SQL formatting in queries/:
+```bash
+task sql-fix
+```
+
+SQLFluff is configured via `.sqlfluff` for BigQuery dialect with auto-formatting on pre-commit.
+{% endif %}
 ## Notes
 * Tool versions are intentionally pinned where appropriate for reproducibility.
 * CI (if enabled) mirrors local commands exactly via the Taskfile.
