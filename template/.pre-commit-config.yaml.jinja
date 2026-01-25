@@ -1,33 +1,43 @@
-repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.4
-    hooks:
-      - id: ruff
-      - id: ruff-format
+# Pre-commit handles file utilities; Taskfile handles linting/formatting
+# CI runs: task pre-commit (which invokes pre-commit run --all-files)
 
+repos:
+  # ============== File Utilities (native pre-commit) ==============
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
-      # Attempts to load all yaml files to verify syntax; unsafe: only check syntax, do not load yaml
-      - id: check-yaml
-        args: ["--unsafe"]
-      # Attempts to load all TOML files to verify syntax.
-      - id: check-toml
-      # Makes sure files end in a newline and only a newline
-      - id: end-of-file-fixer
-      # Trims trailing whitespace. Allow a single space on the end of .md lines for hard line breaks.
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
-      # Detects the presence of private keys
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: ["--unsafe"]
+      - id: check-toml
       - id: detect-private-key
-      # Fail if staged files are above a certain size.
       - id: check-added-large-files
         args: ["--maxkb=1000"]
 {% if project_type == 'pipeline-kfp' %}
-  # SQLFluff: Automatic formatting fixes only (no linting) to use rules in .sqlfluff config file
+
+  # ============== SQL Formatting (pipeline-kfp only) ==============
   - repo: https://github.com/sqlfluff/sqlfluff
     rev: 3.4.2
     hooks:
       - id: sqlfluff-fix
         files: ^queries/
 {% endif %}
+
+  # ============== Project Checks (delegate to Taskfile) ==============
+  - repo: local
+    hooks:
+      - id: task-lint
+        name: task lint
+        entry: task lint
+        language: system
+        pass_filenames: false
+        types: [python]
+
+      - id: task-format-check
+        name: task format-check
+        entry: task format-check
+        language: system
+        pass_filenames: false
+        types: [python]
