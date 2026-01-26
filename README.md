@@ -1,6 +1,6 @@
 # copier-python-mlplatform
 
-A Copier template for Python projects, from minimal bases to ML pipelines.
+A Copier template for Python projects, from minimal base projects, Python packages and ML pipelines.
 
 This repository provides a **reliable foundation** for Python codebases by standardizing
 project structure, tooling, and development workflows. It supports multiple project types
@@ -19,8 +19,8 @@ to accommodate different use cases while maintaining consistent conventions.
 - **Local to CI parity**
   The same commands run locally and in CI via a single Taskfile.
 
-- **Single source of truth**
-  Taskfile defines all check logic; pre-commit delegates to Taskfile for project checks.
+- **Clear seperation of concerns on code quality checks**
+  File-level checks done via pre-commit with leveraging pre-commit's native githooks while Taskfile is used for project checks.
 
 - **Extensibility**
   Three project types cover common use cases; the base type can be extended further.
