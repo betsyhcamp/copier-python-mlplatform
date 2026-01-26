@@ -23,6 +23,75 @@ This template is intentionally **opinionated, consistent, and maintainable**.
 
 ---
 
+## Single Source of Truth Architecture
+
+This template uses a **pragmatic hybrid approach** for CI/local parity where Taskfile is the single source of truth for project-specific checks, while pre-commit handles file utilities and provides automatic git hook integration.
+
+### Responsibilities
+
+| Concern | Owned By | Rationale |
+|---------|----------|-----------|
+| File hygiene (whitespace, EOF, YAML, secrets, large files) | Pre-commit (native hooks) | Battle-tested, staged-file optimized, cross-platform |
+| Project checks (lint, format, test, build, compile) | Taskfile | Single definition, CI orchestration, full scope |
+| Automatic local execution | Pre-commit (git hooks) | Native integration via `pre-commit install` |
+| CI entry point | Taskfile (individual tasks) | CI runs `task pre-commit`, `task test`, etc. for visibility |
+| Local full check | Taskfile (`task check`) | Convenience command to run all CI checks locally |
+
+### How It Works
+
+**Local commits:**
+```
+git commit → pre-commit hooks → 
+  ├── Native file utilities (fast, staged-files only)
+  └── Delegated project checks: task lint, task format-check
+```
+
+**CI pipeline (runs individual steps for visibility):**
+```
+CI →
+  ├── task pre-commit (file utilities + lint + format-check via delegation)
+  ├── task test
+  ├── task docs (package and pipeline-kfp only)
+  └── task build (package only)
+```
+
+**Local `task check` (same checks, single command):**
+```
+task check →
+  ├── task pre-commit
+  ├── task test
+  ├── task docs (package and pipeline-kfp only)
+  └── task build (package only)
+```
+
+### Design Rationale
+
+| Requirement | How It's Met |
+|-------------|--------------|
+| Local-CI parity | Same `task lint` runs locally (via pre-commit) and in CI (via `task pre-commit`) |
+| Single source of truth | Taskfile defines all check logic; pre-commit is just the trigger |
+| Automatic on commit | Pre-commit provides git hook integration |
+| Bypassable | Standard `git commit --no-verify` works |
+| Best practices | Each tool used for its strength |
+| Full CI scope | Taskfile handles tests, builds, docs that pre-commit cannot |
+| CI visibility | CI runs individual tasks so failures are easy to identify in GitHub Actions |
+
+### What Runs Where
+
+| Check | Local (on commit) | CI (on push) |
+|-------|-------------------|--------------|
+| File utilities (whitespace, secrets, YAML) | ✅ (pre-commit native) | ✅ (via `task pre-commit`) |
+| `task lint` | ✅ (via pre-commit delegation) | ✅ (via `task pre-commit`) |
+| `task format-check` | ✅ (via pre-commit delegation) | ✅ (via `task pre-commit`) |
+| `task test` | ❌ (too slow) | ✅ |
+| `task docs` (package, pipeline-kfp) | ❌ | ✅ |
+| `task build` (package only) | ❌ | ✅ |
+| SQL formatting (pipeline-kfp) | ✅ (via pre-commit for queries/) | ✅ (via `task pre-commit`) |
+
+**Note:** CI runs `task pre-commit` which handles file utilities, lint, and format-check via delegation. There are no separate `task lint` or `task format-check` steps in CI to avoid duplication.
+
+---
+
 ## Explicit Non-Goals
 
 The following are **out of scope** for this template and MUST NOT be implemented:
@@ -176,6 +245,7 @@ my-project/
 
 - `docs`: Build HTML documentation locally via `uv run sphinx-build -b html docs docs/_build/html`
 - `docs-clean`: Remove built documentation via `rm -rf docs/_build`
+- `build`: Build the package via `uv build`
 
 ### Documentation Requirements
 
@@ -328,22 +398,99 @@ The `.gitignore` MUST exclude:
 - Used for linting and formatting
 - Formatting via `ruff format`
 
-### Pre-commit
+---
 
-The pre-commit configuration MUST include:
-- `ruff` (rev: v0.4.4)
-- `ruff-format` (rev: v0.4.4)
-- `check-yaml`
-- `check-toml`
-- `end-of-file-fixer`
-- `trailing-whitespace`
-- `detect-private-key`
-- `check-added-large-files` with `args: ["--maxkb=1000"]`
+## Pre-commit Hooks
 
-For `pipeline-kfp` type only:
-- `sqlfluff-fix` (rev: 3.4.2) with `files: ^queries/`
+Pre-commit handles two categories of hooks:
 
-Use pinned versions: ruff v0.4.4, pre-commit-hooks v4.5.0, sqlfluff 3.4.2
+### File Utilities (Native Pre-commit)
+
+These run natively in pre-commit with staged-file optimization:
+
+| Hook | Source | All Types | Notes |
+|------|--------|-----------|-------|
+| `trailing-whitespace` | pre-commit-hooks v4.5.0 | ✅ | |
+| `end-of-file-fixer` | pre-commit-hooks v4.5.0 | ✅ | |
+| `check-yaml` | pre-commit-hooks v4.5.0 | ✅ | |
+| `check-toml` | pre-commit-hooks v4.5.0 | ✅ | |
+| `detect-private-key` | pre-commit-hooks v4.5.0 | ✅ | |
+| `check-added-large-files` | pre-commit-hooks v4.5.0 | ✅ | `args: ["--maxkb=1000"]` |
+| `sqlfluff-fix` | sqlfluff v3.4.2 | pipeline-kfp only | `files: ^queries/` |
+
+### Project Checks (Delegated to Taskfile)
+
+These delegate to Taskfile to maintain single source of truth:
+
+```yaml
+- repo: local
+  hooks:
+    - id: task-lint
+      name: task lint
+      entry: task lint
+      language: system
+      pass_filenames: false
+      types: [python]
+
+    - id: task-format-check
+      name: task format-check
+      entry: task format-check
+      language: system
+      pass_filenames: false
+      types: [python]
+```
+
+**Why delegation:** The same `task lint` definition runs both locally (via pre-commit) and in CI (directly). No duplication of ruff version or configuration.
+
+### Pre-commit Configuration Structure
+
+The `.pre-commit-config.yaml` MUST follow this structure:
+
+```yaml
+# Pre-commit handles file utilities; Taskfile handles linting/formatting
+# CI runs: task pre-commit (which invokes pre-commit run --all-files)
+
+repos:
+  # ============== File Utilities (native pre-commit) ==============
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: detect-private-key
+      - id: check-added-large-files
+        args: ["--maxkb=1000"]
+
+  # ============== SQL Formatting (pipeline-kfp only) ==============
+  {% if project_type == 'pipeline-kfp' %}
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.4.2
+    hooks:
+      - id: sqlfluff-fix
+        files: ^queries/
+  {% endif %}
+
+  # ============== Project Checks (delegate to Taskfile) ==============
+  - repo: local
+    hooks:
+      - id: task-lint
+        name: task lint
+        entry: task lint
+        language: system
+        pass_filenames: false
+        types: [python]
+
+      - id: task-format-check
+        name: task format-check
+        entry: task format-check
+        language: system
+        pass_filenames: false
+        types: [python]
+```
+
+Use pinned versions: pre-commit-hooks v4.5.0, sqlfluff 3.4.2
 
 ---
 
@@ -351,35 +498,161 @@ Use pinned versions: ruff v0.4.4, pre-commit-hooks v4.5.0, sqlfluff 3.4.2
 
 A `Taskfile.yml` MUST be generated using version: '3'.
 
+Taskfile is the **single source of truth** for all project-specific check logic. CI calls Taskfile directly; pre-commit delegates to Taskfile for project checks.
+
 ### Base Tasks (all project types)
 
-| Task | Command | Description |
-|------|---------|-------------|
-| `install` | `uv sync` | Install dependencies |
-| `lint` | `uv run ruff check .` | Run ruff linter |
-| `lint-fix` | `uv run ruff check --fix .` | Run ruff linter with auto-fix |
-| `format` | `uv run ruff format .` | Run ruff formatter |
-| `test` | `uv run pytest` | Run pytest |
-| `ci` | install + lint + test | Run full CI pipeline |
-| `all-precommit` | `uv run pre-commit run --all-files` | Run all pre-commit hooks |
+| Task | Command | Description | Local (via pre-commit) | CI |
+|------|---------|-------------|------------------------|-----|
+| `install` | `uv sync` | Install dependencies | ❌ (manual) | ✅ |
+| `pre-commit` | `uv run pre-commit run --all-files` | Run file utilities + lint + format-check | ❌ (runs natively) | ✅ |
+| `lint` | `uv run ruff check .` | Run ruff linter | ✅ (delegated) | ✅ (via pre-commit) |
+| `lint-fix` | `uv run ruff check --fix .` | Auto-fix lint issues | ❌ (manual) | ❌ |
+| `format` | `uv run ruff format .` | Format code | ❌ (manual) | ❌ |
+| `format-check` | `uv run ruff format --check .` | Verify formatting | ✅ (delegated) | ✅ (via pre-commit) |
+| `test` | `uv run pytest` | Run tests | ❌ (too slow) | ✅ |
+| `check` | pre-commit + test | Full CI checks (base) | ❌ (manual) | ✅ |
 
 ### Package Tasks (project_type == 'package')
-Has `base` Tasks plus those below:
-| Task | Command | Description |
-|------|---------|-------------|
-| `docs` | `uv run sphinx-build -b html docs docs/_build/html` | Build HTML documentation locally |
-| `docs-clean` | `rm -rf docs/_build` | Remove built documentation |
 
-### KFP Pipeline Tasks (project_type == 'pipeline-kfp')
-Has `base` and `package` Tasks plus those below:
+Inherits all base tasks, plus:
 
-| Task | Command | Description |
-|------|---------|-------------|
-| `compile` | TBD | Compile pipeline to JSON |
-| `run-local` | TBD | Run pipeline components locally |
-| `sql-fix` | `uv run sqlfluff fix queries/` | Fix SQL formatting in queries/ |
+| Task | Command | Description | Local | CI |
+|------|---------|-------------|-------|-----|
+| `docs` | `uv run sphinx-build -b html docs docs/_build/html` | Build documentation | ❌ (manual) | ✅ |
+| `docs-clean` | `rm -rf docs/_build` | Clean docs | ❌ (manual) | ❌ |
+| `build` | `uv build` | Build package | ❌ (manual) | ✅ |
+| `check` | pre-commit + test + docs + build | Full CI checks (package) | ❌ (manual) | ✅ |
 
-CI providers MUST call `task ci` and MUST NOT duplicate logic.
+### Pipeline-KFP Tasks (project_type == 'pipeline-kfp')
+
+Inherits all base tasks, plus:
+
+| Task | Command | Description | Local | CI |
+|------|---------|-------------|-------|-----|
+| `docs` | `uv run sphinx-build -b html docs docs/_build/html` | Build documentation | ❌ (manual) | ✅ |
+| `docs-clean` | `rm -rf docs/_build` | Clean docs | ❌ (manual) | ❌ |
+| `sql-fix` | `uv run sqlfluff fix queries/` | Fix SQL formatting | ❌ (manual) | ❌ |
+| `compile` | `echo 'TODO: implement compile'` | Compile pipeline to JSON (placeholder) | ❌ (manual) | ❌ |
+| `run-local` | `echo 'TODO: implement run-local'` | Run pipeline locally (placeholder) | ❌ (manual) | ❌ |
+| `check` | pre-commit + test + docs | Full CI checks (pipeline-kfp) | ❌ (manual) | ✅ |
+
+### Taskfile Structure
+
+The `Taskfile.yml` MUST follow this structure:
+
+```yaml
+version: '3'
+
+tasks:
+  # ===========================================
+  # DEPENDENCIES
+  # ===========================================
+  install:
+    desc: Install dependencies
+    cmds:
+      - uv sync
+
+  # ===========================================
+  # FILE UTILITIES (delegates to pre-commit)
+  # ===========================================
+  pre-commit:
+    desc: Run pre-commit file utilities (whitespace, secrets, YAML, etc.)
+    cmds:
+      - uv run pre-commit run --all-files
+
+  # ===========================================
+  # PROJECT CHECKS (single source of truth)
+  # ===========================================
+  lint:
+    desc: Run ruff linter
+    cmds:
+      - uv run ruff check .
+
+  lint-fix:
+    desc: Run ruff linter with auto-fix
+    cmds:
+      - uv run ruff check --fix .
+
+  format:
+    desc: Format code with ruff
+    cmds:
+      - uv run ruff format .
+
+  format-check:
+    desc: Check code formatting with ruff
+    cmds:
+      - uv run ruff format --check .
+
+  test:
+    desc: Run tests
+    cmds:
+      - uv run pytest
+
+  # ===========================================
+  # COMPOSITE TASKS
+  # ===========================================
+  check:
+    desc: Run all CI checks
+    cmds:
+      - task: pre-commit  # Handles file utilities + lint + format-check via delegation
+      - task: test
+      # Package type adds: docs, build
+      # Pipeline-kfp type adds: docs
+
+  # ===========================================
+  # PACKAGE TYPE ONLY (project_type == 'package')
+  # ===========================================
+  # docs:
+  #   desc: Build documentation
+  #   cmds:
+  #     - uv run sphinx-build -b html docs docs/_build/html
+  #
+  # docs-clean:
+  #   desc: Clean built documentation
+  #   cmds:
+  #     - rm -rf docs/_build
+  #
+  # build:
+  #   desc: Build the package
+  #   cmds:
+  #     - uv build
+  #
+  # check (override for package):
+  #   cmds:
+  #     - task: pre-commit
+  #     - task: test
+  #     - task: docs
+  #     - task: build
+
+  # ===========================================
+  # PIPELINE-KFP TYPE ONLY (project_type == 'pipeline-kfp')
+  # ===========================================
+  # docs, docs-clean: (same as package)
+  #
+  # sql-fix:
+  #   desc: Fix SQL formatting
+  #   cmds:
+  #     - uv run sqlfluff fix queries/
+  #
+  # compile:
+  #   desc: Compile pipeline to JSON (placeholder)
+  #   cmds:
+  #     - echo 'TODO: implement compile'
+  #
+  # run-local:
+  #   desc: Run pipeline components locally (placeholder)
+  #   cmds:
+  #     - echo 'TODO: implement run-local'
+  #
+  # check (override for pipeline-kfp):
+  #   cmds:
+  #     - task: pre-commit
+  #     - task: test
+  #     - task: docs
+```
+
+CI providers MUST call individual tasks (`task pre-commit`, `task test`, etc.) for better visibility in CI logs, NOT `task check`. The `check` task exists for local convenience.
 
 ---
 
@@ -387,21 +660,85 @@ CI providers MUST call `task ci` and MUST NOT duplicate logic.
 
 ### General Rules
 
-- CI configuration files are optional
-- CI logic lives in `Taskfile.yml`
-- CI files are thin wrappers only
+- CI configuration files are thin wrappers that call Taskfile
+- All check logic lives in `Taskfile.yml`
+- CI MUST NOT duplicate logic defined in Taskfile
+- CI runs individual tasks for better visibility in GitHub Actions UI
+- `task pre-commit` handles file utilities + lint + format-check (no separate lint/format-check steps in CI)
 
 ### GitHub Actions
 
 If `ci_provider == "github"`:
-- Generate `.github/workflows/ci.yml`
+- Generate `.github/workflows/ci.yml` (content varies by project type)
 - Use `.python-version`
-- Install `uv`
-- Run `task ci`
+- Install `uv` and `task`
+- Run individual tasks: `task pre-commit`, `task test`, plus `task docs`/`task build` for applicable types
 
 If `ci_provider == "none"`, no CI files are generated.
 
 Use Copier's `_exclude` to ensure the GitHub Actions CI file is only created when `ci_provider == "github"`.
+
+### CI Workflow Structure
+
+The `.github/workflows/ci.yml` is generated differently based on project type for clearer CI visibility. CI runs individual tasks rather than `task check` so failures are easier to identify in the GitHub Actions UI.
+
+**Base type (`project_type == 'base'`):**
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run pre-commit (file utilities + lint + format-check)
+        run: task pre-commit
+
+      - name: Run tests
+        run: task test
+```
+
+**Package type (`project_type == 'package'`):**
+
+Same as base, plus:
+
+```yaml
+      - name: Build documentation
+        run: task docs
+
+      - name: Build package
+        run: task build
+```
+
+**Pipeline-KFP type (`project_type == 'pipeline-kfp'`):**
+
+Same as base, plus:
+
+```yaml
+      - name: Build documentation
+        run: task docs
+```
+
+**Note:** CI does NOT run `task lint` or `task format-check` separately because `task pre-commit` already handles them via delegation. This avoids duplicate execution.
 
 ---
 
@@ -460,14 +797,25 @@ pre-commit install
 
 Common tasks:
 ```bash
-task install       # Run uv sync
-task lint          # Run linters
-task lint-fix      # Run linters with automated fixes
-task format        # Auto-format code
-task test          # Run tests
-task ci            # Run full CI suite
-task all-precommit # Run precommit hooks on all files
+task install        # Run uv sync
+task lint           # Run linters
+task lint-fix       # Run linters with automated fixes
+task format         # Auto-format code
+task format-check   # Check formatting without modifying
+task test           # Run tests
+task check          # Run full CI suite (pre-commit + test + [docs] + [build])
+task pre-commit     # Run pre-commit hooks on all files (includes lint + format-check)
 ```
+
+## How checks are organized
+
+This project uses a **hybrid approach** for code quality:
+
+- **Pre-commit hooks** handle file utilities (whitespace, YAML validation, secrets detection) and delegate linting/formatting to Taskfile
+- **Taskfile** is the single source of truth for all project-specific checks (lint, format, test)
+- **CI** runs individual tasks (`task pre-commit`, `task test`, etc.) for better visibility in GitHub Actions
+
+`task pre-commit` handles file utilities plus lint and format-check via delegation, so CI does not need separate lint/format-check steps.
 
 ## Notes
 * Tool versions are intentionally pinned where appropriate for reproducibility.
@@ -576,6 +924,13 @@ To clean built documentation:
 ```bash
 task docs-clean
 ```
+
+## Building the Package
+
+Build the package:
+```bash
+task build
+```
 ```
 
 **pipeline-kfp type** — Add after "Development workflow":
@@ -638,7 +993,7 @@ def test_import():
 
 A generated project MUST:
 - Install via `uv sync`
-- Pass `task ci`
+- Pass `task check`
 - Be immediately usable without modification
 - Build documentation locally via `task docs` (package type only)
 - Be importable as a Python package
