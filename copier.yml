@@ -1,6 +1,12 @@
 _subdirectory: template
 
 _exclude:
+  # Always exclude (safety/hygiene), defensive exclusions
+  - ".venv"
+  - "uv.lock"
+  - "__pycache__"
+  - "*.pyc"
+  # Conditional excludes (project-type based)
   - "{% if ci_provider != 'github' %}.github{% endif %}"
   - "{% if project_type == 'base' %}docs{% endif %}"
   - "{% if project_type != 'pipeline-kfp' %}configs{% endif %}"

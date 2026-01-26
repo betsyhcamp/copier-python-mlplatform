@@ -1,11 +1,25 @@
 version: '3'
 
 tasks:
+  # ===========================================
+  # DEPENDENCIES
+  # ===========================================
   install:
     desc: Install dependencies
     cmds:
       - uv sync
 
+  # ===========================================
+  # FILE UTILITIES (delegates to pre-commit)
+  # ===========================================
+  pre-commit:
+    desc: Run pre-commit hooks on all files
+    cmds:
+      - uv run pre-commit run --all-files
+
+  # ===========================================
+  # PROJECT CHECKS (single source of truth)
+  # ===========================================
   lint:
     desc: Run ruff linter
     cmds:
@@ -17,27 +31,50 @@ tasks:
       - uv run ruff check --fix .
 
   format:
-    desc: Run ruff formatter
+    desc: Format code with ruff
     cmds:
       - uv run ruff format .
 
+  format-check:
+    desc: Check code formatting with ruff
+    cmds:
+      - uv run ruff format --check .
+
   test:
-    desc: Run pytest
+    desc: Run tests
     cmds:
       - uv run pytest
 
-  ci:
-    desc: Run install, lint, and test
+  # ===========================================
+  # COMPOSITE TASKS
+  # ===========================================
+{% if project_type == 'base' %}
+  check:
+    desc: Run all CI checks
     cmds:
-      - task: install
-      - task: lint
+      - task: pre-commit
       - task: test
-
-  all-precommit:
-    desc: Run all pre-commit hooks
+{% elif project_type == 'package' %}
+  check:
+    desc: Run all CI checks
     cmds:
-      - uv run pre-commit run --all-files
+      - task: pre-commit
+      - task: test
+      - task: docs
+      - task: build
+{% elif project_type == 'pipeline-kfp' %}
+  check:
+    desc: Run all CI checks
+    cmds:
+      - task: pre-commit
+      - task: test
+      - task: docs
+{% endif %}
 {% if project_type in ['package', 'pipeline-kfp'] %}
+
+  # ===========================================
+  # DOCUMENTATION
+  # ===========================================
   docs:
     desc: Build HTML documentation locally
     cmds:
@@ -48,16 +85,30 @@ tasks:
     cmds:
       - rm -rf docs/_build
 {% endif %}
-{% if project_type == 'pipeline-kfp' %}
-  compile:
-    desc: Compile pipeline to JSON
+{% if project_type == 'package' %}
+
+  # ===========================================
+  # PACKAGE BUILD
+  # ===========================================
+  build:
+    desc: Build the package
     cmds:
-      - echo "Not implemented"
+      - uv build
+{% endif %}
+{% if project_type == 'pipeline-kfp' %}
+
+  # ===========================================
+  # PIPELINE TASKS
+  # ===========================================
+  compile:
+    desc: Compile pipeline to JSON (placeholder)
+    cmds:
+      - "echo 'TODO: implement compile'"
 
   run-local:
-    desc: Run pipeline components locally
+    desc: Run pipeline components locally (placeholder)
     cmds:
-      - echo "Not implemented"
+      - "echo 'TODO: implement run-local'"
 
   sql-fix:
     desc: Fix SQL formatting in queries/

@@ -2,10 +2,12 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
+    branches: [main]
 
 jobs:
-  ci:
+  check:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,10 +19,28 @@ jobs:
           python-version-file: .python-version
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v4
 
       - name: Install Task
         uses: arduino/setup-task@v2
+        with:
+          version: 3.x
 
-      - name: Run CI
-        run: task ci
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run pre-commit (file utilities + lint + format-check)
+        run: task pre-commit
+
+      - name: Run tests
+        run: task test
+{% if project_type in ['package', 'pipeline-kfp'] %}
+
+      - name: Build documentation
+        run: task docs
+{% endif %}
+{% if project_type == 'package' %}
+
+      - name: Build package
+        run: task build
+{% endif %}
