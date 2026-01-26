@@ -32,6 +32,8 @@ dev = [
 {%- if project_type in ['package', 'pipeline-kfp'] %}
     "sphinx",
     "furo",
+    "sphinx-autodoc-typehints",
+    "myst-parser",
 {%- endif %}
 {%- if project_type == 'pipeline-kfp' %}
     "sqlfluff",
