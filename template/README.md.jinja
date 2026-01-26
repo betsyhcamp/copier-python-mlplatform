@@ -138,14 +138,25 @@ pre-commit install
 
 Common tasks:
 ```bash
-task install       # Run uv sync
-task lint          # Run linters
-task lint-fix      # Run linters with automated fixes
-task format        # Auto-format code
-task test          # Run tests
-task ci            # Run full CI suite
-task all-precommit # Run precommit hooks on all files
+task install        # Install dependencies (uv sync)
+task lint           # Run linters
+task lint-fix       # Run linters with automated fixes
+task format         # Auto-format code
+task format-check   # Check formatting without modifying
+task test           # Run tests
+task check          # Run full CI suite (pre-commit + test{% if project_type in ['package', 'pipeline-kfp'] %} + docs{% endif %}{% if project_type == 'package' %} + build{% endif %})
+task pre-commit     # Run pre-commit hooks on all files (includes lint + format-check)
 ```
+
+## How checks are organized
+
+This project uses a **hybrid approach** for code quality:
+
+- **Pre-commit hooks** handle file utilities (whitespace, YAML validation, secrets detection) and delegate linting/formatting to Taskfile
+- **Taskfile** is the single source of truth for all project-specific checks (lint, format, test)
+- **CI** runs individual tasks (`task pre-commit`, `task test`, etc.) for better visibility in GitHub Actions
+
+`task pre-commit` handles file utilities plus lint and format-check via delegation, so CI does not need separate lint/format-check steps.
 {% if project_type in ['package', 'pipeline-kfp'] %}
 ## Documentation
 
@@ -160,6 +171,15 @@ To clean built documentation:
 ```bash
 task docs-clean
 ```
+{% if project_type == 'package' %}
+
+## Building the Package
+
+Build the package:
+```bash
+task build
+```
+{% endif %}
 {% endif %}
 {% if project_type == 'pipeline-kfp' %}
 ## Pipeline Development
