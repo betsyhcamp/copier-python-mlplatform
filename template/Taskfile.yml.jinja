@@ -40,6 +40,16 @@ tasks:
     cmds:
       - uv run ruff format --check .
 
+  md-format:
+    desc: Format Markdown files with mdformat
+    cmds:
+      - find . -name '*.md' -not -path './.venv*/*' -exec uv run mdformat --wrap keep {} +
+
+  md-check:
+    desc: Check Markdown formatting with mdformat
+    cmds:
+      - find . -name '*.md' -not -path './.venv*/*' -exec uv run mdformat --wrap keep --check {} +
+
   test:
     desc: Run tests
     cmds:
