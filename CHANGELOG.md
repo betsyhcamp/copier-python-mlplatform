@@ -6,6 +6,20 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 This changelog format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 
+## [0.2.0] - 2026-02-12
+
+### Added
+
+- **mdformat integration** for Markdown formatting across all project types
+  - `mdformat` + `mdformat-gfm` as dev dependencies
+  - `task md-format` for autoformatting, `task md-check` for check-only
+  - Delegated pre-commit hook (`task md-check`) triggers on markdown file changes
+  - `--wrap keep` preserves existing line breaks
+
+### Changed
+
+- `trailing-whitespace` pre-commit hook now excludes `.md` files (mdformat owns markdown formatting)
+
 ## [0.1.0] - 2025-01-25
 
 ### Added
