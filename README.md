@@ -61,8 +61,9 @@ Everything in package (minus package build), plus:
 - Dependency management via **uv**
 - Task-based automation using **Taskfile**
 - Linting and formatting with **Ruff**
+- Markdown formatting with **mdformat** (GFM support)
 - Testing with **pytest**
-- Pre-commit hooks (file utilities + delegated linting/formatting)
+- Pre-commit hooks (file utilities + delegated linting/formatting/md-check)
 - Optional GitHub Actions CI
 
 **Package and pipeline-kfp types:**
@@ -88,10 +89,10 @@ This template uses a **hybrid approach** for code quality:
 Local commits:
   git commit → pre-commit hooks →
     ├── Native file utilities (fast, staged-files only)
-    └── Delegated: task lint, task format-check
+    └── Delegated: task lint, task format-check, task md-check
 
 CI pipeline:
-  ├── task pre-commit (file utilities + lint + format-check)
+  ├── task pre-commit (file utilities + lint + format-check + md-check)
   ├── task test
   ├── task docs (package/pipeline-kfp only)
   └── task build (package only)
@@ -188,6 +189,8 @@ task lint           # Run linters
 task lint-fix       # Run linters with auto-fix
 task format         # Auto-format code
 task format-check   # Check formatting without modifying
+task md-format      # Auto-format Markdown files
+task md-check       # Check Markdown formatting without modifying
 task test           # Run tests
 task check          # Run full CI suite locally
 task pre-commit     # Run pre-commit hooks on all files
@@ -203,6 +206,8 @@ Additional tasks by project type:
 | `task sql-fix` | — | ✓ |
 | `task compile` | — | ✓ (placeholder) |
 | `task run-local` | — | ✓ (placeholder) |
+
+**Note:** Virtual environments must use the `.venv*` naming convention (e.g., `.venv`, `.venv-test`) so that mdformat excludes them from Markdown formatting checks.
 
 ---
 

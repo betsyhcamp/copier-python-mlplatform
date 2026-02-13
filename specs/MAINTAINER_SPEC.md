@@ -32,7 +32,7 @@ This template uses a **pragmatic hybrid approach** for CI/local parity where Tas
 | Concern | Owned By | Rationale |
 |---------|----------|-----------|
 | File hygiene (whitespace, EOF, YAML, secrets, large files) | Pre-commit (native hooks) | Battle-tested, staged-file optimized, cross-platform |
-| Project checks (lint, format, test, build, compile) | Taskfile | Single definition, CI orchestration, full scope |
+| Project checks (lint, format, md-check, test, build, compile) | Taskfile | Single definition, CI orchestration, full scope |
 | Automatic local execution | Pre-commit (git hooks) | Native integration via `pre-commit install` |
 | CI entry point | Taskfile (individual tasks) | CI runs `task pre-commit`, `task test`, etc. for visibility |
 | Local full check | Taskfile (`task check`) | Convenience command to run all CI checks locally |
@@ -41,15 +41,15 @@ This template uses a **pragmatic hybrid approach** for CI/local parity where Tas
 
 **Local commits:**
 ```
-git commit → pre-commit hooks → 
+git commit → pre-commit hooks →
   ├── Native file utilities (fast, staged-files only)
-  └── Delegated project checks: task lint, task format-check
+  └── Delegated project checks: task lint, task format-check, task md-check
 ```
 
 **CI pipeline (runs individual steps for visibility):**
 ```
 CI →
-  ├── task pre-commit (file utilities + lint + format-check via delegation)
+  ├── task pre-commit (file utilities + lint + format-check + md-check via delegation)
   ├── task test
   ├── task docs (package and pipeline-kfp only)
   └── task build (package only)
@@ -68,7 +68,7 @@ task check →
 
 | Requirement | How It's Met |
 |-------------|--------------|
-| Local-CI parity | Same `task lint` runs locally (via pre-commit) and in CI (via `task pre-commit`) |
+| Local-CI parity | Same `task lint`, `task format-check`, `task md-check` run locally (via pre-commit) and in CI (via `task pre-commit`) |
 | Single source of truth | Taskfile defines all check logic; pre-commit is just the trigger |
 | Automatic on commit | Pre-commit provides git hook integration |
 | Bypassable | Standard `git commit --no-verify` works |
@@ -83,12 +83,13 @@ task check →
 | File utilities (whitespace, secrets, YAML) | ✅ (pre-commit native) | ✅ (via `task pre-commit`) |
 | `task lint` | ✅ (via pre-commit delegation) | ✅ (via `task pre-commit`) |
 | `task format-check` | ✅ (via pre-commit delegation) | ✅ (via `task pre-commit`) |
+| `task md-check` | ✅ (via pre-commit delegation) | ✅ (via `task pre-commit`) |
 | `task test` | ❌ (too slow) | ✅ |
 | `task docs` (package, pipeline-kfp) | ❌ | ✅ |
 | `task build` (package only) | ❌ | ✅ |
 | SQL formatting (pipeline-kfp) | ✅ (via pre-commit for queries/) | ✅ (via `task pre-commit`) |
 
-**Note:** CI runs `task pre-commit` which handles file utilities, lint, and format-check via delegation. There are no separate `task lint` or `task format-check` steps in CI to avoid duplication.
+**Note:** CI runs `task pre-commit` which handles file utilities, lint, format-check, and md-check via delegation. There are no separate `task lint`, `task format-check`, or `task md-check` steps in CI to avoid duplication.
 
 ---
 
@@ -363,6 +364,8 @@ dev = [
     "pytest",
     "pre-commit",
     "jupytext",
+    "mdformat",
+    "mdformat-gfm",
     # Additional deps based on project_type
 ]
 
@@ -398,6 +401,13 @@ The `.gitignore` MUST exclude:
 - Used for linting and formatting
 - Formatting via `ruff format`
 
+### mdformat
+
+- Used for Markdown formatting across all project types
+- Plugins: `mdformat-gfm` for GitHub-Flavored Markdown support
+- Wrapping: `--wrap keep` preserves existing line breaks
+- Markdown files are excluded from `trailing-whitespace` hook (mdformat owns all markdown formatting)
+
 ---
 
 ## Pre-commit Hooks
@@ -410,7 +420,7 @@ These run natively in pre-commit with staged-file optimization:
 
 | Hook | Source | All Types | Notes |
 |------|--------|-----------|-------|
-| `trailing-whitespace` | pre-commit-hooks v4.5.0 | ✅ | |
+| `trailing-whitespace` | pre-commit-hooks v4.5.0 | ✅ | `exclude: '\.md$'` (markdown handled by mdformat) |
 | `end-of-file-fixer` | pre-commit-hooks v4.5.0 | ✅ | |
 | `check-yaml` | pre-commit-hooks v4.5.0 | ✅ | |
 | `check-toml` | pre-commit-hooks v4.5.0 | ✅ | |
@@ -438,9 +448,16 @@ These delegate to Taskfile to maintain single source of truth:
       language: system
       pass_filenames: false
       types: [python]
+
+    - id: task-md-check
+      name: task md-check
+      entry: task md-check
+      language: system
+      pass_filenames: false
+      types: [markdown]
 ```
 
-**Why delegation:** The same `task lint` definition runs both locally (via pre-commit) and in CI (directly). No duplication of ruff version or configuration.
+**Why delegation:** The same `task lint` definition runs both locally (via pre-commit) and in CI (directly). No duplication of tool version or configuration.
 
 ### Pre-commit Configuration Structure
 
@@ -456,6 +473,7 @@ repos:
     rev: v4.5.0
     hooks:
       - id: trailing-whitespace
+        exclude: '\.md$'
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-toml
@@ -488,6 +506,13 @@ repos:
         language: system
         pass_filenames: false
         types: [python]
+
+      - id: task-md-check
+        name: task md-check
+        entry: task md-check
+        language: system
+        pass_filenames: false
+        types: [markdown]
 ```
 
 Use pinned versions: pre-commit-hooks v4.5.0, sqlfluff 3.4.2
@@ -510,6 +535,8 @@ Taskfile is the **single source of truth** for all project-specific check logic.
 | `lint-fix` | `uv run ruff check --fix .` | Auto-fix lint issues | ❌ (manual) | ❌ |
 | `format` | `uv run ruff format .` | Format code | ❌ (manual) | ❌ |
 | `format-check` | `uv run ruff format --check .` | Verify formatting | ✅ (delegated) | ✅ (via pre-commit) |
+| `md-format` | `find . -name '*.md' -not -path './.venv*/*' -exec uv run mdformat --wrap keep {} +` | Format Markdown files | ❌ (manual) | ❌ |
+| `md-check` | `find . -name '*.md' -not -path './.venv*/*' -exec uv run mdformat --wrap keep --check {} +` | Check Markdown formatting | ✅ (delegated) | ✅ (via pre-commit) |
 | `test` | `uv run pytest` | Run tests | ❌ (too slow) | ✅ |
 | `check` | pre-commit + test | Full CI checks (base) | ❌ (manual) | ✅ |
 
@@ -584,6 +611,16 @@ tasks:
     cmds:
       - uv run ruff format --check .
 
+  md-format:
+    desc: Format Markdown files with mdformat
+    cmds:
+      - find . -name '*.md' -not -path './.venv*/*' -exec uv run mdformat --wrap keep {} +
+
+  md-check:
+    desc: Check Markdown formatting with mdformat
+    cmds:
+      - find . -name '*.md' -not -path './.venv*/*' -exec uv run mdformat --wrap keep --check {} +
+
   test:
     desc: Run tests
     cmds:
@@ -595,7 +632,7 @@ tasks:
   check:
     desc: Run all CI checks
     cmds:
-      - task: pre-commit  # Handles file utilities + lint + format-check via delegation
+      - task: pre-commit  # Handles file utilities + lint + format-check + md-check via delegation
       - task: test
       # Package type adds: docs, build
       # Pipeline-kfp type adds: docs
@@ -664,7 +701,7 @@ CI providers MUST call individual tasks (`task pre-commit`, `task test`, etc.) f
 - All check logic lives in `Taskfile.yml`
 - CI MUST NOT duplicate logic defined in Taskfile
 - CI runs individual tasks for better visibility in GitHub Actions UI
-- `task pre-commit` handles file utilities + lint + format-check (no separate lint/format-check steps in CI)
+- `task pre-commit` handles file utilities + lint + format-check + md-check (no separate lint/format-check/md-check steps in CI)
 
 ### GitHub Actions
 
@@ -710,7 +747,7 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Run pre-commit (file utilities + lint + format-check)
+      - name: Run pre-commit (file utilities + lint + format-check + md-check)
         run: task pre-commit
 
       - name: Run tests
@@ -738,7 +775,7 @@ Same as base, plus:
         run: task docs
 ```
 
-**Note:** CI does NOT run `task lint` or `task format-check` separately because `task pre-commit` already handles them via delegation. This avoids duplicate execution.
+**Note:** CI does NOT run `task lint`, `task format-check`, or `task md-check` separately because `task pre-commit` already handles them via delegation. This avoids duplicate execution.
 
 ---
 
@@ -802,9 +839,11 @@ task lint           # Run linters
 task lint-fix       # Run linters with automated fixes
 task format         # Auto-format code
 task format-check   # Check formatting without modifying
+task md-format      # Auto-format Markdown files
+task md-check       # Check Markdown formatting without modifying
 task test           # Run tests
 task check          # Run full CI suite (pre-commit + test + [docs] + [build])
-task pre-commit     # Run pre-commit hooks on all files (includes lint + format-check)
+task pre-commit     # Run pre-commit hooks on all files (includes lint + format-check + md-check)
 ```
 
 ## How checks are organized
@@ -812,10 +851,10 @@ task pre-commit     # Run pre-commit hooks on all files (includes lint + format-
 This project uses a **hybrid approach** for code quality:
 
 - **Pre-commit hooks** handle file utilities (whitespace, YAML validation, secrets detection) and delegate linting/formatting to Taskfile
-- **Taskfile** is the single source of truth for all project-specific checks (lint, format, test)
+- **Taskfile** is the single source of truth for all project-specific checks (lint, format, md-check, test)
 - **CI** runs individual tasks (`task pre-commit`, `task test`, etc.) for better visibility in GitHub Actions
 
-`task pre-commit` handles file utilities plus lint and format-check via delegation, so CI does not need separate lint/format-check steps.
+`task pre-commit` handles file utilities plus lint, format-check, and md-check via delegation, so CI does not need separate steps for these.
 
 ## Notes
 * Tool versions are intentionally pinned where appropriate for reproducibility.
