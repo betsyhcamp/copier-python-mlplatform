@@ -143,9 +143,11 @@ task lint           # Run linters
 task lint-fix       # Run linters with automated fixes
 task format         # Auto-format code
 task format-check   # Check formatting without modifying
+task md-format      # Auto-format Markdown files
+task md-check       # Check Markdown formatting without modifying
 task test           # Run tests
 task check          # Run full CI suite (pre-commit + test{% if project_type in ['package', 'pipeline-kfp'] %} + docs{% endif %}{% if project_type == 'package' %} + build{% endif %})
-task pre-commit     # Run pre-commit hooks on all files (includes lint + format-check)
+task pre-commit     # Run pre-commit hooks on all files (includes lint + format-check + md-check)
 ```
 
 ## How checks are organized
@@ -153,10 +155,10 @@ task pre-commit     # Run pre-commit hooks on all files (includes lint + format-
 This project uses a **hybrid approach** for code quality:
 
 - **Pre-commit hooks** handle file utilities (whitespace, YAML validation, secrets detection) and delegate linting/formatting to Taskfile
-- **Taskfile** is the single source of truth for all project-specific checks (lint, format, test)
+- **Taskfile** is the single source of truth for all project-specific checks (lint, format, md-check, test)
 - **CI** runs individual tasks (`task pre-commit`, `task test`, etc.) for better visibility in GitHub Actions
 
-`task pre-commit` handles file utilities plus lint and format-check via delegation, so CI does not need separate lint/format-check steps.
+`task pre-commit` handles file utilities plus lint, format-check, and md-check via delegation, so CI does not need separate steps for these.
 {% if project_type in ['package', 'pipeline-kfp'] %}
 ## Documentation
 
@@ -218,4 +220,5 @@ SQLFluff is configured via `.sqlfluff` for BigQuery dialect with auto-formatting
 * CI (if enabled) mirrors local commands exactly via the Taskfile.
 * This repository is intended to be adapted to your specific domain needs.
 * Dependencies are handled by `uv` and `uv.lock` is where all dependencies are documented. As a result, `uv.lock` should be committed.
+* Virtual environments must use the `.venv*` naming convention (e.g., `.venv`, `.venv-test`) so that mdformat excludes them from Markdown formatting checks.
 * For VSCode users, copy `.vscode/settings.example.json` to `.vscode/settings.json`
