@@ -6,6 +6,16 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 This changelog format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 
+
+## [0.2.1] - 2026-02-27
+
+### Fixes
+
+- Fix Dockerfile from being included in project type `package`
+- Fix Pre-commit and ruff from scanning notebooks directory
+- Ensure Markdown formatting via mdformat and associated Taskfile commands only formats or checks formatting of Markdown files that are being tracked.
+- Documentation reflecting above fixes. Included updates in README.md, README.md.jinja and MAINTAINER_SPEC.md
+
 ## [0.2.0] - 2026-02-12
 
 ### Added

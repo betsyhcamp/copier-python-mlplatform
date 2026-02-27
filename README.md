@@ -207,8 +207,6 @@ Additional tasks by project type:
 | `task compile` | — | ✓ (placeholder) |
 | `task run-local` | — | ✓ (placeholder) |
 
-**Note:** Virtual environments must use the `.venv*` naming convention (e.g., `.venv`, `.venv-test`) so that mdformat excludes them from Markdown formatting checks.
-
 ---
 
 ## Contributing
