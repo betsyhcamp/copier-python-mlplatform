@@ -1,6 +1,8 @@
 # Pre-commit handles file utilities; Taskfile handles linting/formatting
 # CI runs: task pre-commit (which invokes pre-commit run --all-files)
 
+exclude: '(\.ipynb$|^notebooks/)'
+
 repos:
   # ============== File Utilities (native pre-commit) ==============
   - repo: https://github.com/pre-commit/pre-commit-hooks

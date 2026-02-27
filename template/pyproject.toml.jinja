@@ -48,7 +48,7 @@ packages = ["src/{{ package_name }}"]
 [tool.ruff]
 line-length = 88
 target-version = "{{ py_target }}"
-extend-exclude = ["*.md", ".venv"]
+extend-exclude = ["*.md", ".venv", "notebooks"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -375,7 +375,7 @@ packages = ["src/{{ package_name }}"]
 [tool.ruff]
 line-length = 88
 target-version = "{{ py_target }}"
-extend-exclude = ["*.md", ".venv"]
+extend-exclude = ["*.md", ".venv", "notebooks"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -467,6 +467,8 @@ The `.pre-commit-config.yaml` MUST follow this structure:
 # Pre-commit handles file utilities; Taskfile handles linting/formatting
 # CI runs: task pre-commit (which invokes pre-commit run --all-files)
 
+exclude: '(\.ipynb$|^notebooks/)'
+
 repos:
   # ============== File Utilities (native pre-commit) ==============
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -535,8 +537,8 @@ Taskfile is the **single source of truth** for all project-specific check logic.
 | `lint-fix` | `uv run ruff check --fix .` | Auto-fix lint issues | ❌ (manual) | ❌ |
 | `format` | `uv run ruff format .` | Format code | ❌ (manual) | ❌ |
 | `format-check` | `uv run ruff format --check .` | Verify formatting | ✅ (delegated) | ✅ (via pre-commit) |
-| `md-format` | `find . -name '*.md' -not -path './.venv*/*' -exec uv run mdformat --wrap keep {} +` | Format Markdown files | ❌ (manual) | ❌ |
-| `md-check` | `find . -name '*.md' -not -path './.venv*/*' -exec uv run mdformat --wrap keep --check {} +` | Check Markdown formatting | ✅ (delegated) | ✅ (via pre-commit) |
+| `md-format` | `git ls-files '*.md' \| xargs uv run mdformat --wrap keep` | Format tracked Markdown files | ❌ (manual) | ❌ |
+| `md-check` | `git ls-files '*.md' \| xargs uv run mdformat --wrap keep --check` | Check tracked Markdown formatting | ✅ (delegated) | ✅ (via pre-commit) |
 | `test` | `uv run pytest` | Run tests | ❌ (too slow) | ✅ |
 | `check` | pre-commit + test | Full CI checks (base) | ❌ (manual) | ✅ |
 
@@ -612,14 +614,14 @@ tasks:
       - uv run ruff format --check .
 
   md-format:
-    desc: Format Markdown files with mdformat
+    desc: Format tracked Markdown files with mdformat
     cmds:
-      - find . -name '*.md' -not -path './.venv*/*' -exec uv run mdformat --wrap keep {} +
+      - git ls-files '*.md' | xargs uv run mdformat --wrap keep
 
   md-check:
-    desc: Check Markdown formatting with mdformat
+    desc: Check tracked Markdown formatting with mdformat
     cmds:
-      - find . -name '*.md' -not -path './.venv*/*' -exec uv run mdformat --wrap keep --check {} +
+      - git ls-files '*.md' | xargs uv run mdformat --wrap keep --check
 
   test:
     desc: Run tests
