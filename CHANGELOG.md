@@ -7,6 +7,19 @@ This changelog format is based on [Keep a Changelog](https://keepachangelog.com/
 
 
 
+## [0.3.0] - 2026-03-30
+
+### Added
+
+- **Code coverage configuration** for all project types
+  - `pytest-cov` as a dev dependency
+  - `task test-cov` for running tests with coverage report (term-missing + HTML)
+  - `[tool.coverage.*]` sections in `pyproject.toml` with branch coverage, common exclude patterns, and HTML output to `htmlcov/`
+- **Markdown format-all tasks** for formatting tracked and untracked Markdown files
+  - `task md-format-all` for autoformatting all Markdown files
+  - `task md-check-all` for checking all Markdown files
+- `htmlcov/` added to `.gitignore`
+
 ## [0.2.1] - 2026-02-27
 
 ### Fixes

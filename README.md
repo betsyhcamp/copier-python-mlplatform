@@ -62,7 +62,7 @@ Everything in package (minus package build), plus:
 - Task-based automation using **Taskfile**
 - Linting and formatting with **Ruff**
 - Markdown formatting with **mdformat** (GFM support)
-- Testing with **pytest**
+- Testing with **pytest** and optional **coverage** via `pytest-cov`
 - Pre-commit hooks (file utilities + delegated linting/formatting/md-check)
 - Optional GitHub Actions CI
 
@@ -191,7 +191,10 @@ task format         # Auto-format code
 task format-check   # Check formatting without modifying
 task md-format      # Auto-format Markdown files
 task md-check       # Check Markdown formatting without modifying
+task md-format-all  # Auto-format all Markdown files (tracked and untracked)
+task md-check-all   # Check all Markdown formatting (tracked and untracked)
 task test           # Run tests
+task test-cov       # Run tests with coverage report
 task check          # Run full CI suite locally
 task pre-commit     # Run pre-commit hooks on all files
 ```

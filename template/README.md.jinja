@@ -145,7 +145,10 @@ task format         # Auto-format code
 task format-check   # Check formatting without modifying
 task md-format      # Auto-format Markdown files
 task md-check       # Check Markdown formatting without modifying
+task md-format-all  # Auto-format all Markdown files (tracked and untracked)
+task md-check-all   # Check all Markdown formatting (tracked and untracked)
 task test           # Run tests
+task test-cov       # Run tests with coverage report
 task check          # Run full CI suite (pre-commit + test{% if project_type in ['package', 'pipeline-kfp'] %} + docs{% endif %}{% if project_type == 'package' %} + build{% endif %})
 task pre-commit     # Run pre-commit hooks on all files (includes lint + format-check + md-check)
 ```
