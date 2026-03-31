@@ -31,6 +31,7 @@ dev = [
     "jupytext",
     "mdformat",
     "mdformat-gfm",
+    "pytest-cov",
 {%- if project_type in ['package', 'pipeline-kfp'] %}
     "sphinx",
     "furo",
@@ -53,3 +54,24 @@ extend-exclude = ["*.md", ".venv", "notebooks"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+
+[tool.coverage.run]
+source = ["{{ package_name }}"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    'if __name__ == "__main__"',
+    "raise NotImplementedError",
+    "pass",
+    "\\.\\.\\.",
+    "assert_never",
+    "raise AssertionError",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
