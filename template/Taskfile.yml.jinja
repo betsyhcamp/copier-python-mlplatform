@@ -50,10 +50,25 @@ tasks:
     cmds:
       - git ls-files '*.md' | xargs uv run mdformat --wrap keep --check
 
+  md-format-all:
+    desc: Format all Markdown files (tracked and untracked)
+    cmds:
+      - find . -name '*.md' -not -path './.venv/*' -not -path './.git/*' -not -path './node_modules/*' -not -path './docs/_build/*' | xargs uv run mdformat --wrap keep
+
+  md-check-all:
+    desc: Check all Markdown formatting (tracked and untracked)
+    cmds:
+      - find . -name '*.md' -not -path './.venv/*' -not -path './.git/*' -not -path './node_modules/*' -not -path './docs/_build/*' | xargs uv run mdformat --wrap keep --check
+
   test:
     desc: Run tests
     cmds:
       - uv run pytest
+
+  test-cov:
+    desc: Run tests with coverage report
+    cmds:
+      - uv run pytest --cov --cov-report=term-missing --cov-report=html
 
   # ===========================================
   # COMPOSITE TASKS
