@@ -1,1 +1,7 @@
-# Configuration file
+# Project settings — configure before running pipeline or Docker tasks
+project_settings:
+  project_id: ""                # GCP project ID
+  location: "us-central1"      # GCP region for Vertex AI and Artifact Registry
+  env: ""                       # Deployment environment, e.g. dev, staging, prod
+  bucket_name: ""               # GCS bucket for pipeline artifacts, e.g. my-bucket
+  artifact_registry_repo: ""    # Artifact Registry repo name (must already exist)
