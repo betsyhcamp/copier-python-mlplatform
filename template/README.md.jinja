@@ -85,9 +85,10 @@ pre-commit install
     └── conftest.py
 {% elif project_type == 'pipeline-kfp' -%}
 .
-├── configs
+├── config
 │   └── config.yaml
 ├── Dockerfile
+├── .dockerignore
 ├── .gitignore
 ├── .sqlfluff
 ├── .sqlfluffignore
@@ -201,7 +202,7 @@ task run-local
 
 ### Directory Overview
 
-- `configs/` — YAML configuration files
+- `config/` — YAML configuration files
 - `notebooks/` — Jupyter notebooks for exploration
 - `notes/` — Project design specification
 - `queries/` — SQL query files
