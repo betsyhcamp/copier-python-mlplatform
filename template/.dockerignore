@@ -1,0 +1,38 @@
+# Version control
+.git/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+
+# Virtual environment
+.venv/
+
+# Dev tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Test artifacts
+tests/
+htmlcov/
+.coverage
+
+# Data files
+notebooks/
+*.csv
+*.parquet
+*.xlsx
+
+# Documentation
+docs/_build/
+
+# Project notes
+notes/
+
+# Local configuration
+.env
+.vscode/
+.copier-answers.yml

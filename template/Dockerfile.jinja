@@ -1,1 +1,42 @@
-# Dockerfile
+{%- set py_major_minor = python_version.split('.')[:2] | join('.') -%}
+# Stage 1: builder — install deps and build the package wheel
+FROM ghcr.io/astral-sh/uv:python{{ py_major_minor }}-bookworm-slim AS builder
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy dependency files first — this layer is cached until deps change
+COPY pyproject.toml uv.lock README.md ./
+
+# Install dependencies (no project, no dev deps)
+# Add --group <name> to include component-specific dependency groups
+RUN uv sync --locked --no-cache --no-dev --no-install-project --no-editable
+
+# Copy source and install the package as a non-editable wheel
+COPY src/ src/
+RUN uv pip install --no-deps --no-cache .
+
+
+# Stage 2: runtime — lean image with only the venv and config
+FROM ghcr.io/astral-sh/uv:python{{ py_major_minor }}-bookworm-slim AS runtime
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy only the virtual environment from builder (no build tools in runtime image)
+COPY --from=builder /app/.venv /app/.venv
+
+# Copy pipeline configuration
+COPY config/ config/
+
+ENV VIRTUAL_ENV=/app/.venv
+ENV PATH=/app/.venv/bin:$PATH
+
+# No ENTRYPOINT or CMD — KFP injects the runtime command via the base_image field

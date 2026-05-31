@@ -16,6 +16,7 @@ _exclude:
   - "{% if project_type != 'pipeline-kfp' %}.sqlfluff{% endif %}"
   - "{% if project_type != 'pipeline-kfp' %}.sqlfluffignore{% endif %}"
   - "{% if project_type != 'pipeline-kfp' %}Dockerfile{% endif %}"
+  - "{% if project_type != 'pipeline-kfp' %}.dockerignore{% endif %}"
 
 project_name:
   type: str
