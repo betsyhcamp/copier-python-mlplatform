@@ -219,8 +219,7 @@ task sql-fix
 SQLFluff is configured via `.sqlfluff` for BigQuery dialect with auto-formatting on pre-commit.
 {% endif %}
 ## Notes
-* Tool versions are intentionally pinned where appropriate for reproducibility.
+* Tool versions in `pyproject.toml` are intentionally unpinned; `uv.lock` is the reproducibility mechanism and should be committed.
 * CI (if enabled) mirrors local commands exactly via the Taskfile.
 * This repository is intended to be adapted to your specific domain needs.
-* Dependencies are handled by `uv` and `uv.lock` is where all dependencies are documented. As a result, `uv.lock` should be committed.
 * For VSCode users, copy `.vscode/settings.example.json` to `.vscode/settings.json`
