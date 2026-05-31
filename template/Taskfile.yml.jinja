@@ -86,31 +86,6 @@ tasks:
     cmds:
       - uv run pytest --cov --cov-report=term-missing --cov-report=html
 
-  # ===========================================
-  # COMPOSITE TASKS
-  # ===========================================
-{% if project_type == 'base' %}
-  check:
-    desc: Run all CI checks
-    cmds:
-      - task: pre-commit
-      - task: test
-{% elif project_type == 'package' %}
-  check:
-    desc: Run all CI checks
-    cmds:
-      - task: pre-commit
-      - task: test
-      - task: docs
-      - task: build
-{% elif project_type == 'pipeline-kfp' %}
-  check:
-    desc: Run all CI checks
-    cmds:
-      - task: pre-commit
-      - task: test
-      - task: docs
-{% endif %}
 {% if project_type in ['package', 'pipeline-kfp'] %}
 
   # ===========================================
@@ -187,3 +162,4 @@ tasks:
           IMAGE: "{% raw %}{{.IMAGE}}{% endraw %}"
       - task: push-image
 {% endif %}
+

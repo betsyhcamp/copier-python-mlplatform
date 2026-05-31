@@ -1,0 +1,74 @@
+name: Template CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: check (${{ matrix.project_type }}, ${{ matrix.ci_provider }}, ${{ matrix.python_version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project_type: [base, package, pipeline-kfp]
+        ci_provider: [none, github]
+        python_version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python_version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+
+      - name: Install copier
+        run: uv tool install copier
+
+      - name: Render template
+        run: |
+          copier copy . ./generated \
+            --defaults \
+            --data project_name="test-project" \
+            --data package_name="test_project" \
+            --data python_version="${{ matrix.python_version }}" \
+            --data author_name="CI" \
+            --data author_email="ci@example.com" \
+            --data project_type="${{ matrix.project_type }}" \
+            --data ci_provider="${{ matrix.ci_provider }}"
+
+      - name: Initialize project
+        working-directory: ./generated
+        run: |
+          git init
+          git add -A
+          uv sync
+
+      - name: Run pre-commit
+        working-directory: ./generated
+        run: task pre-commit
+
+      - name: Run tests
+        working-directory: ./generated
+        run: task test
+
+      - name: Build docs
+        if: matrix.project_type == 'package' || matrix.project_type == 'pipeline-kfp'
+        working-directory: ./generated
+        run: task docs
+
+      - name: Build package
+        if: matrix.project_type == 'package'
+        working-directory: ./generated
+        run: task build
