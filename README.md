@@ -14,13 +14,13 @@ to accommodate different use cases while maintaining consistent conventions.
   Sensible defaults that work out of the box.
 
 - **Reproducibility**
-  Pinned tooling versions where appropriate, deterministic scaffolding.
+  `uv.lock` is the generated project's reproducibility mechanism. Tool versions in `pyproject.toml` are intentionally unpinned to avoid false precision; lock the versions you care about in `uv.lock`.
 
 - **Local to CI parity**
   The same commands run locally and in CI via a single Taskfile.
 
-- **Clear seperation of concerns on code quality checks**
-  File-level checks done via pre-commit with leveraging pre-commit's native githooks while Taskfile is used for project checks.
+- **Clear separation of concerns on code quality checks**
+  File-level checks use pre-commit's native git hooks; Taskfile handles all project-specific checks.
 
 - **Extensibility**
   Three project types cover common use cases; the base type can be extended further.

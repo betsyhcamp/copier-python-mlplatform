@@ -258,7 +258,7 @@ my-project/
 
 ---
 
-## Project Type: kfp-pipeline
+## Project Type: pipeline-kfp
 
 The pipeline-kfp type extends package structure with Kubeflow Pipelines ML workflow structure.
 

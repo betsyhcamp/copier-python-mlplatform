@@ -51,6 +51,17 @@ line-length = 88
 target-version = "{{ py_target }}"
 extend-exclude = ["*.md", ".venv", "notebooks"]
 
+[tool.ruff.lint]
+select = [
+    "E4",  # import/syntax-related pycodestyle errors
+    "E7",  # statement-level pycodestyle errors
+    "E9",  # runtime errors (syntax errors at parse time)
+    "F",   # pyflakes — undefined names, unused imports
+    "I",   # isort — ruff format does not sort imports
+    "UP",  # pyupgrade — modern Python syntax for 3.11+
+    "B",   # flake8-bugbear — common design bugs, mutable defaults
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
