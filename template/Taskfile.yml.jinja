@@ -1,4 +1,20 @@
 version: '3'
+{% if project_type == 'pipeline-kfp' %}
+
+vars:
+  SHA:
+    sh: git rev-parse --short HEAD
+  DIRTY:
+    sh: git diff --quiet || echo "-dirty"
+  PROJECT_ID:
+    sh: uv run python3 -c "import yaml; print(yaml.safe_load(open('config/config.yaml'))['project_settings']['project_id'])"
+  LOCATION:
+    sh: uv run python3 -c "import yaml; print(yaml.safe_load(open('config/config.yaml'))['project_settings']['location'])"
+  REPO:
+    sh: uv run python3 -c "import yaml; print(yaml.safe_load(open('config/config.yaml'))['project_settings']['artifact_registry_repo'])"
+  REGISTRY:
+    sh: echo "{% raw %}{{.LOCATION}}-docker.pkg.dev/{{.PROJECT_ID}}/{{.REPO}}{% endraw %}"
+{% endif %}
 
 tasks:
   # ===========================================
@@ -139,4 +155,35 @@ tasks:
     desc: Fix SQL formatting in queries/
     cmds:
       - uv run sqlfluff fix queries/
+
+  # ===========================================
+  # DOCKER TASKS
+  # ===========================================
+  build-image:
+    desc: Build Docker image tagged with git SHA
+    cmds:
+      - docker buildx build --platform linux/amd64 -t "{% raw %}{{.REGISTRY}}{% endraw %}/{{ package_name }}:{% raw %}{{.SHA}}{{.DIRTY}}{% endraw %}" .
+
+  verify-image:
+    desc: Verify Docker image can import the package
+    requires:
+      vars: [IMAGE]
+    cmds:
+      - docker run --rm "{% raw %}{{.IMAGE}}{% endraw %}" python3 -c "import {{ package_name }}"
+
+  push-image:
+    desc: Push Docker image to Artifact Registry
+    cmds:
+      - docker push "{% raw %}{{.REGISTRY}}{% endraw %}/{{ package_name }}:{% raw %}{{.SHA}}{{.DIRTY}}{% endraw %}"
+
+  build-push-image:
+    desc: Build, verify, and push Docker image
+    vars:
+      IMAGE: "{% raw %}{{.REGISTRY}}{% endraw %}/{{ package_name }}:{% raw %}{{.SHA}}{{.DIRTY}}{% endraw %}"
+    cmds:
+      - task: build-image
+      - task: verify-image
+        vars:
+          IMAGE: "{% raw %}{{.IMAGE}}{% endraw %}"
+      - task: push-image
 {% endif %}
