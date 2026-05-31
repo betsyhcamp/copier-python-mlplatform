@@ -116,14 +116,15 @@ pre-commit install
 ├── src
 │   └── {{ package_name }}
 │       ├── __init__.py
-│       ├── config.py
-│       ├── run_pipeline.py
 │       ├── components
 │       │   └── __init__.py
 │       ├── core
 │       │   └── __init__.py
-│       └── pipelines
-│           └── __init__.py
+│       ├── pipelines
+│       │   └── __init__.py
+│       └── schemas
+│           ├── __init__.py
+│           └── config_schemas.py
 ├── Taskfile.yml
 └── tests
     ├── test_smoke.py
