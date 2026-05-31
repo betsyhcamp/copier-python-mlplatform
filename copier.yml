@@ -1,5 +1,8 @@
 _subdirectory: template
 
+_envops:
+  trim_blocks: true
+
 _exclude:
   # Always exclude (safety/hygiene), defensive exclusions
   - ".venv"
