@@ -10,6 +10,26 @@ to accommodate different use cases while maintaining consistent conventions.
 
 ---
 
+## Why Templates Still Matter with Coding Agents
+
+Coding agents dramatically reduce the cost of generating code — bootstrapping a project,
+writing boilerplate, and scaffolding new files now takes seconds. What they don't eliminate
+is the need for repeatable engineering standards.
+
+Every new project still needs consistent answers to the same questions: How are linting rules
+configured? What does CI check? Where does package source live? How is documentation built?
+What tasks run locally versus in CI? Getting these wrong creates friction — inconsistent
+tooling across projects, CI that diverges from local development, and documentation that's
+never wired up correctly.
+
+Templates encode those decisions. This one standardizes **uv** for dependency management,
+**Taskfile** as the local/CI interface, **Ruff** for lint and format, **Sphinx** for docs
+where appropriate, and a project structure that scales from a minimal base to a full ML
+pipeline scaffold. Every project generated from this template starts from a verified,
+known-good baseline — with CI to prove it.
+
+---
+
 ## Design Goals
 
 - **Low cognitive overhead**
