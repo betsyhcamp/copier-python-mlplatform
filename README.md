@@ -1,5 +1,7 @@
 # copier-python-mlplatform
 
+[![Template CI](https://github.com/betsyhcamp/copier-python-mlplatform/actions/workflows/template-ci.yml/badge.svg)](https://github.com/betsyhcamp/copier-python-mlplatform/actions/workflows/template-ci.yml) ![Python 3.11 | 3.12](https://img.shields.io/badge/python-3.11_%7C_3.12-blue) [![License: Unlicense](https://img.shields.io/badge/license-Unlicense-cyan.svg)](LICENSE)
+
 A Copier template for Python projects, from minimal base projects, Python packages and ML pipelines.
 
 This repository provides a **reliable foundation** for Python codebases by standardizing
@@ -217,8 +219,6 @@ Additional tasks by project type:
 - Check the latest changes in `CHANGELOG.md`
 - Use [semantic commit messages](https://gist.github.com/joshbuchea/6f47e86d2510bce28f8e7f42ae84c716)
 - Feel free to open a GitHub issue
-
-Originally derived from [copier-python-base](https://github.com/betsyhcamp/copier-python-base) but diverged to become a more specialized template for ML platform work.
 
 ---
 
