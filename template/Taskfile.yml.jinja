@@ -85,7 +85,6 @@ tasks:
     desc: Run tests with coverage report
     cmds:
       - uv run pytest --cov --cov-report=term-missing --cov-report=html
-
 {% if project_type in ['package', 'pipeline-kfp'] %}
 
   # ===========================================
