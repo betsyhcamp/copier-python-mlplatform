@@ -5,13 +5,14 @@ TODO — one sentence on what this project does.
 A minimal, production-grade Python project scaffold.
 
 This project was generated from a Copier template designed to standardize:
+
 - Python packaging and project structure
 - Local development and CI workflows
 - Linting, formatting, and testing conventions
 
 The goal is to provide a **reliable foundation** that scales from local development to CI without surprises.
 
----
+______________________________________________________________________
 
 ## Requirements
 
@@ -30,6 +31,7 @@ uv sync
 ```
 
 Pre-commit hooks can be installed with:
+
 ```bash
 pre-commit install
 ```
@@ -132,13 +134,14 @@ pre-commit install
 {% endif -%}
 ```
 
-* `src/` layout is used for correct packaging behavior
-* Tooling configuration lives in `pyproject.toml`
-* Automation is centralized in `Taskfile.yml`
+- `src/` layout is used for correct packaging behavior
+- Tooling configuration lives in `pyproject.toml`
+- Automation is centralized in `Taskfile.yml`
 
 ## Development workflow
 
 Common tasks:
+
 ```bash
 task install        # Install dependencies (uv sync)
 task lint           # Run linters
@@ -165,9 +168,11 @@ This project uses a **hybrid approach** for code quality:
 
 `task pre-commit` handles file utilities plus lint, format-check, and md-check via delegation, so CI does not need separate steps for these.
 {% if project_type in ['package', 'pipeline-kfp'] %}
+
 ## Documentation
 
 Build documentation locally:
+
 ```bash
 task docs
 ```
@@ -175,6 +180,7 @@ task docs
 Then open `docs/_build/html/index.html` in your browser.
 
 To clean built documentation:
+
 ```bash
 task docs-clean
 ```
@@ -189,14 +195,17 @@ task build
 {% endif %}
 {% endif %}
 {% if project_type == 'pipeline-kfp' %}
+
 ## Pipeline Development
 
 Compile the pipeline:
+
 ```bash
 task compile
 ```
 
 Run pipeline components locally:
+
 ```bash
 task run-local
 ```
@@ -214,14 +223,17 @@ task run-local
 ### SQL Formatting
 
 Fix SQL formatting in queries/:
+
 ```bash
 task sql-fix
 ```
 
 SQLFluff is configured via `.sqlfluff` for BigQuery dialect with auto-formatting on pre-commit.
 {% endif %}
+
 ## Notes
-* Tool versions in `pyproject.toml` are intentionally unpinned; `uv.lock` is the reproducibility mechanism and should be committed.
-* CI (if enabled) mirrors local commands exactly via the Taskfile.
-* This repository is intended to be adapted to your specific domain needs.
-* For VSCode users, copy `.vscode/settings.example.json` to `.vscode/settings.json`
+
+- Tool versions in `pyproject.toml` are intentionally unpinned; `uv.lock` is the reproducibility mechanism and should be committed.
+- CI (if enabled) mirrors local commands exactly via the Taskfile.
+- This repository is intended to be adapted to your specific domain needs.
+- For VSCode users, copy `.vscode/settings.example.json` to `.vscode/settings.json`
