@@ -234,11 +234,27 @@ Additional tasks by project type:
 
 ---
 
+## Architecture Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| **uv** for dependency management | Fast, deterministic; single tool for venv, sync, and build |
+| **Taskfile** as CI/local interface | Single source of truth; CI calls the same commands as local dev |
+| **pre-commit** for file hygiene | Native git hook integration; runs only on staged files |
+| **Ruff** for lint + format | Single tool replaces flake8 + isort + black; fast |
+| **Sphinx** only for package/pipeline types | Docs overhead not justified for minimal base projects |
+| **SQLFluff** only for pipeline-kfp | BigQuery-specific; not relevant outside pipeline context |
+| **No mypy/pyright by default** | Explicit non-goal; type annotations encouraged but not enforced at the template level |
+
+---
+
 ## Contributing
 
 - Check the latest changes in `CHANGELOG.md`
 - Use [semantic commit messages](https://gist.github.com/joshbuchea/6f47e86d2510bce28f8e7f42ae84c716)
 - Feel free to open a GitHub issue
+
+The full architecture and design decisions are documented in [specs/MAINTAINER_SPEC.md](specs/MAINTAINER_SPEC.md).
 
 ---
 
