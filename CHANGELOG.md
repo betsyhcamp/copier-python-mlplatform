@@ -7,6 +7,33 @@ This changelog format is based on [Keep a Changelog](https://keepachangelog.com/
 
 
 
+## [0.4.0] - 2026-05-31
+
+### Added
+
+- **Template verification CI** (`template-ci.yml`) — 12-job matrix (3 project types × 2 CI providers × Python 3.11/3.12)
+- **`pipeline-kfp`: multi-stage Dockerfile and `.dockerignore`**
+- **`pipeline-kfp`: Docker tasks** — `build-image`, `verify-image`, `push-image`, `build-push-image`
+- **`pipeline-kfp`: `schemas/` subpackage** with Pydantic v2 config validation
+- **`pipeline-kfp`: `config/config.yaml`** with GCP project settings
+- **Explicit `[tool.ruff.lint]` config** in `pyproject.toml.jinja` (`E4`, `E7`, `E9`, `F`, `I`, `UP`, `B`)
+- **README badges**: Template CI, Python 3.11 | 3.12, Unlicense
+- **README**: "Why Templates Still Matter with Coding Agents" section
+- **README**: Architecture Decisions table
+- **README**: Full Quickstart with prerequisites, prompt demo, and `tree -aL 3` for all project types
+- **README**: Link to `specs/MAINTAINER_SPEC.md` from Contributing
+
+### Changed
+
+- Renamed `template/configs/` → `template/config/`
+- Removed `task check` from generated Taskfile; CI now runs individual tasks for per-step visibility
+- `copier.yml`: added `trim_blocks: true` to eliminate trailing newlines in generated files
+
+### Fixed
+
+- Corrected project type header (`kfp-pipeline` → `pipeline-kfp`) in `MAINTAINER_SPEC.md`
+- Corrected reproducibility language and pre-commit phrasing in README
+
 ## [0.3.0] - 2026-03-30
 
 ### Added
