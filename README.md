@@ -122,13 +122,48 @@ CI pipeline:
 
 ---
 
-## Project Structure
+## Quickstart
 
-### Base Layout
+### Prerequisites
+
+- [Copier](https://copier.readthedocs.io/en/stable/) — `uv tool install copier`
+- [uv](https://docs.astral.sh/uv/) — `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- [Task](https://taskfile.dev/) — `brew install go-task` (macOS) or see [installation docs](https://taskfile.dev/installation/)
+
+### Generate a project
+
+```bash
+copier copy gh:betsyhcamp/copier-python-mlplatform my-project
+```
+
+Copier prompts for seven values. Example answers for a `pipeline-kfp` project with GitHub Actions CI:
+
+```text
+Project name []: my-ml-project
+Package name (valid Python identifier) []: my_ml_project
+Python version [3.11.11]: 3.11.11
+Author name []: Your Name
+Author email []: your@email.com
+Project type (base, package, pipeline-kfp) [base]: pipeline-kfp
+CI provider (none, github) [none]: github
+```
+
+### Get started
+
+```bash
+cd my-project
+uv sync
+task test
+```
+
+### What gets generated
+
+**`base`** — Minimal Python project with linting, formatting, testing, and optional CI:
 
 ```text
 .
-├── .github              # [optional, if ci_provider=github]
+├── .copier-answers.yml
+├── .github
 │   └── workflows
 │       └── ci.yml
 ├── .gitignore
@@ -139,7 +174,7 @@ CI pipeline:
 ├── pyproject.toml
 ├── README.md
 ├── src
-│   └── {{ package_name }}
+│   └── my_ml_project
 │       └── __init__.py
 ├── Taskfile.yml
 └── tests
@@ -147,57 +182,81 @@ CI pipeline:
     └── test_smoke.py
 ```
 
-### Package Layout
+**`package`** — Everything in base, plus Sphinx documentation and `uv build`:
 
-Base layout plus:
 ```text
+.
+├── .copier-answers.yml
+├── .github
+│   └── workflows
+│       └── ci.yml
+├── .gitignore
+├── .pre-commit-config.yaml
+├── .python-version
+├── .vscode
+│   └── settings.example.json
 ├── docs
 │   ├── api.rst
 │   ├── conf.py
 │   ├── index.rst
 │   └── overview.rst
+├── pyproject.toml
+├── README.md
+├── src
+│   └── my_ml_project
+│       └── __init__.py
+├── Taskfile.yml
+└── tests
+    ├── conftest.py
+    └── test_smoke.py
 ```
 
-### Pipeline-KFP Layout
+**`pipeline-kfp`** — Everything in package (minus build), plus KFP structure, SQL formatting,
+notebooks, and Docker:
 
-Package layout plus:
 ```text
-├── configs
+.
+├── .copier-answers.yml
+├── .dockerignore
+├── .github
+│   └── workflows
+│       └── ci.yml
+├── .gitignore
+├── .pre-commit-config.yaml
+├── .python-version
+├── .sqlfluff
+├── .sqlfluffignore
+├── .vscode
+│   └── settings.example.json
+├── config
 │   └── config.yaml
 ├── Dockerfile
+├── docs
+│   ├── api.rst
+│   ├── conf.py
+│   ├── index.rst
+│   └── overview.rst
 ├── notebooks
 │   └── .gitkeep
 ├── notes
 │   └── project_design_doc.md
+├── pyproject.toml
 ├── queries
+│   ├── .gitkeep
 │   └── example.sql
-├── .sqlfluff
-├── .sqlfluffignore
-└── src
-    └── {{ package_name }}
-        ├── config.py
-        ├── run_pipeline.py
-        ├── components
-        │   └── __init__.py
-        ├── core
-        │   └── __init__.py
-        └── pipelines
-            └── __init__.py
+├── README.md
+├── src
+│   └── my_ml_project
+│       ├── __init__.py
+│       ├── components
+│       ├── core
+│       ├── pipelines
+│       └── schemas
+├── Taskfile.yml
+└── tests
+    ├── conftest.py
+    └── test_smoke.py
 ```
-
----
-
-## Usage
-
-Install [Copier](https://copier.readthedocs.io/en/stable/), [uv](https://github.com/astral-sh/uv), and [Task](https://taskfile.dev/).
-
-Generate a new project:
-
-```bash
-copier copy gh:betsyhcamp/copier-python-mlplatform my-project
-```
-
-You'll be prompted to select a project type and other options.
 
 ---
 
