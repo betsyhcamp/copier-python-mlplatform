@@ -1,10 +1,24 @@
 # copier-python-mlplatform
 
-A Copier template for Python projects, from minimal base projects, Python packages and ML pipelines.
+[![Template CI](https://github.com/betsyhcamp/copier-python-mlplatform/actions/workflows/template-ci.yml/badge.svg)](https://github.com/betsyhcamp/copier-python-mlplatform/actions/workflows/template-ci.yml) ![Python 3.11 | 3.12](https://img.shields.io/badge/python-3.11_%7C_3.12-blue) [![License: Unlicense](https://img.shields.io/badge/license-Unlicense-cyan.svg)](LICENSE)
+
+A Copier template for production-oriented Python projects, including minimal projects, distributable packages, and Kubeflow-based ML pipelines.
 
 This repository provides a **reliable foundation** for Python codebases by standardizing
 project structure, tooling, and development workflows. It supports multiple project types
 to accommodate different use cases while maintaining consistent conventions.
+
+Use this template when you want a compact but sensible starting point for Python projects that need reproducible tooling, local/CI parity, and a clean path from package code to ML pipeline scaffolding.
+
+---
+
+## Why Templates Still Matter with Coding Agents
+
+Coding agents make it easier to generate code, but they do not eliminate the need for repeatable engineering standards.
+
+Every new project still needs consistent answers to the same questions including how linting is configured, which CI checks to include, where source code lives, how documentation is built, and which commands run locally versus in CI.
+
+When those decisions are made ad hoc, teams accumulate friction through inconsistent tooling and workflows diverge.
 
 ---
 
@@ -14,15 +28,15 @@ to accommodate different use cases while maintaining consistent conventions.
   Sensible defaults that work out of the box.
 
 - **Reproducibility**
-  `uv.lock` is the generated project's reproducibility mechanism. Tool versions in `pyproject.toml` are intentionally unpinned to avoid false precision; lock the versions you care about in `uv.lock`.
+  `uv.lock` is the generated project's reproducibility mechanism. Tool versions in `pyproject.toml` are intentionally unpinned to avoid false precision. Lock the package versions important to your work in `uv.lock`.
 
 - **Local to CI parity**
   The same commands run locally and in CI via a single Taskfile.
 
-- **Clear separation of concerns on code quality checks**
+- **Clear separation of concerns for code quality checks**
   File-level checks use pre-commit's native git hooks; Taskfile handles all project-specific checks.
 
-- **Extensibility**
+- **Coverage of common use cases**
   Three project types cover common use cases; the base type can be extended further.
 
 ---
@@ -31,49 +45,9 @@ to accommodate different use cases while maintaining consistent conventions.
 
 | Type | Use Case | Includes |
 |------|----------|----------|
-| `base` | Minimal Python projects | Core tooling only |
-| `package` | Distributable libraries | Sphinx docs, package build |
-| `pipeline-kfp` | Kubeflow ML pipelines | Sphinx docs, SQL formatting, notebooks, Dockerfile, pipeline structure |
-
-### Base (default)
-
-A minimal Python project with linting, formatting, testing, and optional CI. Use this as a starting point for simple projects or as a foundation for custom extensions.
-
-### Package
-
-Everything in base, plus Sphinx documentation and package building with `uv build`. Use this for libraries you intend to distribute.
-
-### Pipeline-KFP
-
-Everything in package (minus package build), plus:
-- Kubeflow Pipelines project structure (`components/`, `pipelines/`, `core/`)
-- SQL queries directory with SQLFluff formatting
-- Jupyter notebooks directory
-- Dockerfile
-- Configuration and notes directories
-
----
-
-## What This Template Provides
-
-**All project types:**
-- `src/` layout Python packaging
-- Dependency management via **uv**
-- Task-based automation using **Taskfile**
-- Linting and formatting with **Ruff**
-- Markdown formatting with **mdformat** (GFM support)
-- Testing with **pytest** and optional **coverage** via `pytest-cov`
-- Pre-commit hooks (file utilities + delegated linting/formatting/md-check)
-- Optional GitHub Actions CI
-
-**Package and pipeline-kfp types:**
-- Sphinx documentation with Furo theme
-- Autodoc with Google-style docstrings
-- MyST parser for Markdown support
-
-**Pipeline-kfp type only:**
-- SQL formatting with SQLFluff (BigQuery dialect)
-- KFP pipeline structure and dependencies
+| `base` | Minimal Python projects that need consistent tooling | `src/` layout, pytest, Ruff, uv, Taskfile, optional GitHub Actions, optional pre-commit |
+| `package` | Distributable Python packages | Everything in `base`, plus package build configuration and optional Sphinx documentation |
+| `pipeline-kfp` | ML pipeline projects using Kubeflow Pipelines | Everything in `package`, plus KFP-oriented directories, Dockerfile, SQL formatting, notebooks, and pipeline scaffolding |
 
 ---
 
@@ -100,13 +74,50 @@ CI pipeline:
 
 ---
 
-## Project Structure
+## Quickstart
 
-### Base Layout
+### Prerequisites
+
+- [Copier](https://copier.readthedocs.io/en/stable/): Install [Copier here](https://copier.readthedocs.io/en/stable/#installation)
+- [uv](https://docs.astral.sh/uv/): Install [uv here](https://docs.astral.sh/uv/getting-started/installation/)
+- [Task](https://taskfile.dev/): Install [Task here](https://taskfile.dev/docs/installation)
+
+Installation instructions vary by operating system and may change over time, so this README links to the official installation guides.
+
+### Generate a project
+
+```bash
+copier copy gh:betsyhcamp/copier-python-mlplatform my-project
+```
+
+There are seven Copier prompts. Here is an example with answers for a `pipeline-kfp` project with GitHub Actions CI:
+
+```text
+Project name []: my-ml-project
+Package name (valid Python identifier) []: my_ml_project
+Python version [3.11.11]: 3.11.11
+Author name []: Your Name
+Author email []: your@email.com
+Project type (base, package, pipeline-kfp) [base]: pipeline-kfp
+CI provider (none, github) [none]: github
+```
+
+### Initialize the generated project
+
+```bash
+cd my-project
+task install
+task test
+```
+
+### What gets generated
+
+#### **`base`** generated structure:
 
 ```text
 .
-├── .github              # [optional, if ci_provider=github]
+├── .copier-answers.yml
+├── .github
 │   └── workflows
 │       └── ci.yml
 ├── .gitignore
@@ -117,7 +128,7 @@ CI pipeline:
 ├── pyproject.toml
 ├── README.md
 ├── src
-│   └── {{ package_name }}
+│   └── my_ml_project
 │       └── __init__.py
 ├── Taskfile.yml
 └── tests
@@ -125,57 +136,80 @@ CI pipeline:
     └── test_smoke.py
 ```
 
-### Package Layout
+#### **`package`** generated structure:
 
-Base layout plus:
 ```text
+.
+├── .copier-answers.yml
+├── .github
+│   └── workflows
+│       └── ci.yml
+├── .gitignore
+├── .pre-commit-config.yaml
+├── .python-version
+├── .vscode
+│   └── settings.example.json
 ├── docs
 │   ├── api.rst
 │   ├── conf.py
 │   ├── index.rst
 │   └── overview.rst
+├── pyproject.toml
+├── README.md
+├── src
+│   └── my_ml_project
+│       └── __init__.py
+├── Taskfile.yml
+└── tests
+    ├── conftest.py
+    └── test_smoke.py
 ```
 
-### Pipeline-KFP Layout
+#### **`pipeline-kfp`** generated structure:
 
-Package layout plus:
 ```text
-├── configs
+.
+├── .copier-answers.yml
+├── .dockerignore
+├── .github
+│   └── workflows
+│       └── ci.yml
+├── .gitignore
+├── .pre-commit-config.yaml
+├── .python-version
+├── .sqlfluff
+├── .sqlfluffignore
+├── .vscode
+│   └── settings.example.json
+├── config
 │   └── config.yaml
 ├── Dockerfile
+├── docs
+│   ├── api.rst
+│   ├── conf.py
+│   ├── index.rst
+│   └── overview.rst
 ├── notebooks
 │   └── .gitkeep
 ├── notes
 │   └── project_design_doc.md
+├── pyproject.toml
 ├── queries
+│   ├── .gitkeep
 │   └── example.sql
-├── .sqlfluff
-├── .sqlfluffignore
-└── src
-    └── {{ package_name }}
-        ├── config.py
-        ├── run_pipeline.py
-        ├── components
-        │   └── __init__.py
-        ├── core
-        │   └── __init__.py
-        └── pipelines
-            └── __init__.py
+├── README.md
+├── src
+│   └── my_ml_project
+│       ├── __init__.py
+│       ├── components
+│       ├── core
+│       ├── pipelines
+│       └── schemas
+├── Taskfile.yml
+└── tests
+    ├── conftest.py
+    └── test_smoke.py
 ```
-
----
-
-## Usage
-
-Install [Copier](https://copier.readthedocs.io/en/stable/), [uv](https://github.com/astral-sh/uv), and [Task](https://taskfile.dev/).
-
-Generate a new project:
-
-```bash
-copier copy gh:betsyhcamp/copier-python-mlplatform my-project
-```
-
-You'll be prompted to select a project type and other options.
 
 ---
 
@@ -195,7 +229,6 @@ task md-format-all  # Auto-format all Markdown files (tracked and untracked)
 task md-check-all   # Check all Markdown formatting (tracked and untracked)
 task test           # Run tests
 task test-cov       # Run tests with coverage report
-task check          # Run full CI suite locally
 task pre-commit     # Run pre-commit hooks on all files
 ```
 
@@ -209,6 +242,24 @@ Additional tasks by project type:
 | `task sql-fix` | — | ✓ |
 | `task compile` | — | ✓ (placeholder) |
 | `task run-local` | — | ✓ (placeholder) |
+| `task build-image` | — | ✓ |
+| `task verify-image` | — | ✓ |
+| `task push-image` | — | ✓ |
+| `task build-push-image` | — | ✓ |
+
+---
+
+## Architecture Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| **uv** for dependency management | Fast, deterministic; single tool for venv, sync, and build |
+| **Taskfile** short commands for CI/local interface | Single source of truth; CI calls the same commands as local dev; expressive YAML-like syntax |
+| **pre-commit** for file hygiene | Native git hook integration; runs only on staged files; mature tool with a large variety of hooks |
+| **Ruff** for lint + format | Fast; one tool replaces separate linters + multiple formatters |
+| **Sphinx** only for package/pipeline types | Mature doc generator with many options; compatible with Confluence |
+| **SQLFluff** only for pipeline-kfp | Well supported and highly configurable; compatible with BigQuery-specific syntax; only relevant for pipelines |
+| **No mypy/pyright by default** | Explicit non-goal; type annotations are encouraged, but enforcement is left to generated projects |
 
 ---
 
@@ -218,7 +269,7 @@ Additional tasks by project type:
 - Use [semantic commit messages](https://gist.github.com/joshbuchea/6f47e86d2510bce28f8e7f42ae84c716)
 - Feel free to open a GitHub issue
 
-Originally derived from [copier-python-base](https://github.com/betsyhcamp/copier-python-base) but diverged to become a more specialized template for ML platform work.
+The full architecture and design decisions are documented in [specs/MAINTAINER_SPEC.md](specs/MAINTAINER_SPEC.md).
 
 ---
 
